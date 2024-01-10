@@ -13,6 +13,10 @@
 				},
 				"secretName": "oracle-consultoria-bi"
 			}
+		},
+		"connectVia": {
+			"referenceName": "ir-servidor-oracle",
+			"type": "IntegrationRuntimeReference"
 		}
 	}
 }
