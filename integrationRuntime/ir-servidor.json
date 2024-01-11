@@ -1,0 +1,6 @@
+{
+	"name": "ir-servidor",
+	"properties": {
+		"type": "SelfHosted"
+	}
+}
