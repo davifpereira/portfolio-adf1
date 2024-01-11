@@ -1,0 +1,22 @@
+{
+	"name": "BdOracleOnPremisse",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=localhost;port=1521;serviceName=XEPDB1;user id=CONSULTORIA_BI",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "oracle-consultoria-bi"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ir-servidor",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
