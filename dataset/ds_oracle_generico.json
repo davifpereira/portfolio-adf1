@@ -1,0 +1,30 @@
+{
+	"name": "ds_oracle_generico",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_oracle_servidor",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"owner": {
+				"type": "string"
+			},
+			"view": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().owner",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().view",
+				"type": "Expression"
+			}
+		}
+	}
+}
