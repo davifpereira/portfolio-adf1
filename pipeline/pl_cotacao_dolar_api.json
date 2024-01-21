@@ -3,67 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "busca_dados_cotacao_api",
-				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.00:15:00",
-					"retry": 3,
-					"retryIntervalInSeconds": 60,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "RestSource",
-						"httpRequestTimeout": "00:01:40",
-						"requestInterval": "00.00:00:00.010",
-						"requestMethod": "GET",
-						"paginationRules": {
-							"supportRFC5988": "true"
-						}
-					},
-					"sink": {
-						"type": "JsonSink",
-						"storeSettings": {
-							"type": "AzureBlobFSWriteSettings"
-						},
-						"formatSettings": {
-							"type": "JsonWriteSettings"
-						}
-					},
-					"enableStaging": false
-				},
-				"inputs": [
-					{
-						"referenceName": "ds_rest_api_bc_dolar",
-						"type": "DatasetReference",
-						"parameters": {
-							"data_inicio": {
-								"value": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')",
-								"type": "Expression"
-							},
-							"data_fim": {
-								"value": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "ds_data_lake_json_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"container": "dados-api"
-						}
-					}
-				]
-			},
-			{
 				"name": "data_ontem",
 				"type": "SetVariable",
 				"dependsOn": [],
@@ -92,7 +31,7 @@
 				"typeProperties": {
 					"variableName": "primeira_data",
 					"value": {
-						"value": "@adddays(utcnow(), -5)",
+						"value": "@adddays(utcnow(), -1)",
 						"type": "Expression"
 					}
 				}
@@ -147,17 +86,6 @@
 						"value": "@not(empty(activity('dados_cotacao_api').output.value))",
 						"type": "Expression"
 					},
-					"ifFalseActivities": [
-						{
-							"name": "Wait2",
-							"type": "Wait",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"waitTimeInSeconds": 1
-							}
-						}
-					],
 					"ifTrueActivities": [
 						{
 							"name": "copia_salva",
