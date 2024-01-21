@@ -160,13 +160,62 @@
 					],
 					"ifTrueActivities": [
 						{
-							"name": "Wait1",
-							"type": "Wait",
+							"name": "copia_salva",
+							"type": "Copy",
 							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:15:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
 							"userProperties": [],
 							"typeProperties": {
-								"waitTimeInSeconds": 1
-							}
+								"source": {
+									"type": "RestSource",
+									"httpRequestTimeout": "00:01:40",
+									"requestInterval": "00.00:00:00.010",
+									"requestMethod": "GET",
+									"paginationRules": {
+										"supportRFC5988": "true"
+									}
+								},
+								"sink": {
+									"type": "JsonSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "JsonWriteSettings"
+									}
+								},
+								"enableStaging": false
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_rest_api_bc_dolar",
+									"type": "DatasetReference",
+									"parameters": {
+										"data_inicio": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')",
+										"data_fim": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')"
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_data_lake_json_generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": "dados-api",
+										"nome_arquivo": {
+											"value": "@concat('cotacao_dolar_', formatDateTime(variables('data_ontem'), 'dd-MM-yyyy'))",
+											"type": "Expression"
+										},
+										"encoding": "UTF-8"
+									}
+								}
+							]
 						}
 					]
 				}
