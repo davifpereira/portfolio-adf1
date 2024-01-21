@@ -144,7 +144,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"expression": {
-						"value": "@empty(activity('dados_cotacao_api').output)",
+						"value": "@not(empty(activity('dados_cotacao_api').output.value))",
 						"type": "Expression"
 					},
 					"ifFalseActivities": [
