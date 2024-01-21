@@ -5,7 +5,20 @@
 			{
 				"name": "busca_dados_cotacao_api",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "data_ontem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "primeira_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.00:15:00",
 					"retry": 3,
@@ -40,9 +53,12 @@
 						"referenceName": "ds_rest_api_bc_dolar",
 						"type": "DatasetReference",
 						"parameters": {
-							"data_inicio": "01-01-2024",
+							"data_inicio": {
+								"value": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')",
+								"type": "Expression"
+							},
 							"data_fim": {
-								"value": "@formatDateTime(utcNow(), 'MM-dd-yyyy')",
+								"value": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')",
 								"type": "Expression"
 							}
 						}
@@ -51,11 +67,91 @@
 				"outputs": [
 					{
 						"referenceName": "ds_data_lake_json_generico",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"container": "dados-api"
+						}
 					}
 				]
+			},
+			{
+				"name": "data_ontem",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "data_ontem",
+					"value": {
+						"value": "@adddays(utcNow(), -1)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "primeira_data",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "primeira_data",
+					"value": {
+						"value": "@adddays(utcnow(), -6)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "Web1",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "GET",
+					"datasets": [
+						{
+							"referenceName": "ds_rest_api_bc_dolar",
+							"type": "DatasetReference",
+							"parameters": {
+								"data_inicio": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')",
+								"data_fim": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')"
+							}
+						}
+					]
+				}
 			}
 		],
+		"parameters": {
+			"data_inicial": {
+				"type": "string",
+				"defaultValue": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')"
+			},
+			"data_final": {
+				"type": "string"
+			}
+		},
+		"variables": {
+			"data_ontem": {
+				"type": "String"
+			},
+			"primeira_data": {
+				"type": "String"
+			}
+		},
 		"annotations": []
 	}
 }
