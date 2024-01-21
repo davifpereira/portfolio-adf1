@@ -3,13 +3,13 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "get_api",
+				"name": "busca_dados_cotacao_api",
 				"type": "Copy",
 				"dependsOn": [],
 				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
+					"timeout": "0.00:15:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
 					"secureOutput": false,
 					"secureInput": false
 				},
@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "RestSource",
-						"httpRequestTimeout": "00:05:00",
+						"httpRequestTimeout": "00:01:40",
 						"requestInterval": "00.00:00:00.010",
 						"requestMethod": "GET",
 						"paginationRules": {
@@ -37,8 +37,15 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "ds_rest_api_generico",
-						"type": "DatasetReference"
+						"referenceName": "ds_rest_api_bc_dolar",
+						"type": "DatasetReference",
+						"parameters": {
+							"data_inicio": "01-01-2024",
+							"data_fim": {
+								"value": "@formatDateTime(utcNow(), 'MM-dd-yyyy')",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"outputs": [

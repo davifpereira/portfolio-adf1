@@ -1,9 +1,23 @@
 {
-	"name": "ds_rest_api_generico",
+	"name": "ds_rest_api_bc_dolar",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_rest_api_aberta_generico",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"url": {
+					"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial=''', dataset().data_inicio, '''&@dataFinalCotacao=''', dataset().data_fim, '''&$format=json&$select=cotacaoVenda,dataHoraCotacao')",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"data_inicio": {
+				"type": "string"
+			},
+			"data_fim": {
+				"type": "string"
+			}
 		},
 		"annotations": [],
 		"type": "RestResource",
