@@ -5,20 +5,9 @@
 			{
 				"name": "busca_dados_cotacao_api",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "data_ontem",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "primeira_data",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.00:15:00",
 					"retry": 3,
@@ -111,7 +100,20 @@
 			{
 				"name": "Web1",
 				"type": "WebActivity",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "data_ontem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "primeira_data",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -121,29 +123,14 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"method": "GET",
-					"datasets": [
-						{
-							"referenceName": "ds_rest_api_bc_dolar",
-							"type": "DatasetReference",
-							"parameters": {
-								"data_inicio": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')",
-								"data_fim": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')"
-							}
-						}
-					]
+					"url": {
+						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial=''', formatDateTime(variables('primeira_data'), 'MM-dd-yyyy'), '''&@dataFinalCotacao=''', formatDateTime(variables('data_ontem'), 'MM-dd-yyyy'), '''&$format=json&$select=cotacaoVenda,dataHoraCotacao')",
+						"type": "Expression"
+					},
+					"method": "GET"
 				}
 			}
 		],
-		"parameters": {
-			"data_inicial": {
-				"type": "string",
-				"defaultValue": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')"
-			},
-			"data_final": {
-				"type": "string"
-			}
-		},
 		"variables": {
 			"data_ontem": {
 				"type": "String"
