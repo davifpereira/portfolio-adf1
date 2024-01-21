@@ -92,13 +92,13 @@
 				"typeProperties": {
 					"variableName": "primeira_data",
 					"value": {
-						"value": "@adddays(utcnow(), -6)",
+						"value": "@adddays(utcnow(), -1)",
 						"type": "Expression"
 					}
 				}
 			},
 			{
-				"name": "Web1",
+				"name": "dados_cotacao_api",
 				"type": "WebActivity",
 				"dependsOn": [
 					{
@@ -128,6 +128,47 @@
 						"type": "Expression"
 					},
 					"method": "GET"
+				}
+			},
+			{
+				"name": "confere_existencia_dados",
+				"type": "IfCondition",
+				"dependsOn": [
+					{
+						"activity": "dados_cotacao_api",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"expression": {
+						"value": "@empty(activity('dados_cotacao_api').output)",
+						"type": "Expression"
+					},
+					"ifFalseActivities": [
+						{
+							"name": "Wait2",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					],
+					"ifTrueActivities": [
+						{
+							"name": "Wait1",
+							"type": "Wait",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"waitTimeInSeconds": 1
+							}
+						}
+					]
 				}
 			}
 		],
