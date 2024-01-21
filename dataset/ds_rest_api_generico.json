@@ -1,0 +1,12 @@
+{
+	"name": "ds_rest_api_generico",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_rest_api_aberta_generico",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"schema": []
+	}
+}
