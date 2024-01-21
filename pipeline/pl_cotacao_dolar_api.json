@@ -92,7 +92,7 @@
 				"typeProperties": {
 					"variableName": "primeira_data",
 					"value": {
-						"value": "@adddays(utcnow(), -1)",
+						"value": "@adddays(utcnow(), -5)",
 						"type": "Expression"
 					}
 				}
