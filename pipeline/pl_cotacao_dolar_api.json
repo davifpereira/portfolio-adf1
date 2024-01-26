@@ -14,7 +14,7 @@
 				"typeProperties": {
 					"variableName": "data_ontem",
 					"value": {
-						"value": "@adddays(convertFromUtc(utcNow(), 'E. South America Standard Time', 'MM-dd-yyyy'), -1)",
+						"value": "@formatDateTime(adddays(convertFromUtc(utcNow(), 'E. South America Standard Time'), -1), 'MM-dd-yyyy')",
 						"type": "Expression"
 					}
 				}
