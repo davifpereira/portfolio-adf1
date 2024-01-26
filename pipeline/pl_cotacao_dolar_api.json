@@ -22,8 +22,6 @@
 			{
 				"name": "dados_cotacao_api",
 				"type": "WebActivity",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "data_ontem",
@@ -43,7 +41,7 @@
 				"typeProperties": {
 					"method": "GET",
 					"url": {
-						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=dataCotacao)?dataCotacao=''', formatDateTime(variables('data_ontem'),'MM-dd-yyyy'), '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=dataCotacao)?dataCotacao=''', variables('data_ontem'), '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
 						"type": "Expression"
 					}
 				}
