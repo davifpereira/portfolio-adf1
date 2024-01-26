@@ -14,7 +14,7 @@
 				"typeProperties": {
 					"variableName": "data_ontem",
 					"value": {
-						"value": "@adddays(utcNow(), -1)",
+						"value": "@adddays(utcNow(), -2)",
 						"type": "Expression"
 					}
 				}
@@ -31,7 +31,7 @@
 				"typeProperties": {
 					"variableName": "primeira_data",
 					"value": {
-						"value": "@adddays(utcnow(), -1)",
+						"value": "@adddays(utcnow(), -180)",
 						"type": "Expression"
 					}
 				}
@@ -62,11 +62,11 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
+					"method": "GET",
 					"url": {
 						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial=''', formatDateTime(variables('primeira_data'), 'MM-dd-yyyy'), '''&@dataFinalCotacao=''', formatDateTime(variables('data_ontem'), 'MM-dd-yyyy'), '''&$format=json&$select=cotacaoVenda,dataHoraCotacao')",
 						"type": "Expression"
-					},
-					"method": "GET"
+					}
 				}
 			},
 			{
@@ -125,8 +125,7 @@
 									"referenceName": "ds_rest_api_bc_dolar",
 									"type": "DatasetReference",
 									"parameters": {
-										"data_inicio": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')",
-										"data_fim": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')"
+										"data": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')"
 									}
 								}
 							],
