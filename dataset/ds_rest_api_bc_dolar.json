@@ -6,7 +6,7 @@
 			"type": "LinkedServiceReference",
 			"parameters": {
 				"url": {
-					"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao=''', dataset().data_inicio, '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+					"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao=''', dataset().data, '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
 					"type": "Expression"
 				}
 			}

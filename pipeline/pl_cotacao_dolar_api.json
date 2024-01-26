@@ -14,24 +14,7 @@
 				"typeProperties": {
 					"variableName": "data_ontem",
 					"value": {
-						"value": "@adddays(utcNow(), -2)",
-						"type": "Expression"
-					}
-				}
-			},
-			{
-				"name": "primeira_data",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "primeira_data",
-					"value": {
-						"value": "@adddays(utcnow(), -180)",
+						"value": "@adddays(utcNow(), -1)",
 						"type": "Expression"
 					}
 				}
@@ -42,12 +25,6 @@
 				"dependsOn": [
 					{
 						"activity": "data_ontem",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					},
-					{
-						"activity": "primeira_data",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -64,7 +41,7 @@
 				"typeProperties": {
 					"method": "GET",
 					"url": {
-						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarPeriodo(dataInicial=@dataInicial,dataFinalCotacao=@dataFinalCotacao)?@dataInicial=''', formatDateTime(variables('primeira_data'), 'MM-dd-yyyy'), '''&@dataFinalCotacao=''', formatDateTime(variables('data_ontem'), 'MM-dd-yyyy'), '''&$format=json&$select=cotacaoVenda,dataHoraCotacao')",
+						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=dataCotacao)?dataCotacao=''', variables('data_ontem'), '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
 						"type": "Expression"
 					}
 				}
@@ -125,7 +102,7 @@
 									"referenceName": "ds_rest_api_bc_dolar",
 									"type": "DatasetReference",
 									"parameters": {
-										"data": "@formatDateTime(variables('primeira_data'), 'MM-dd-yyyy')"
+										"data": "@formatDateTime(variables('data_ontem'), 'MM-dd-yyyy')"
 									}
 								}
 							],
