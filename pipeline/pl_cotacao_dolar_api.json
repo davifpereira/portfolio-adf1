@@ -41,7 +41,7 @@
 				"typeProperties": {
 					"method": "GET",
 					"url": {
-						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=dataCotacao)?dataCotacao=''', variables('data_ontem'), '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao=''', variables('data_ontem'), '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
 						"type": "Expression"
 					}
 				}
