@@ -130,9 +130,6 @@
 		"variables": {
 			"data_ontem": {
 				"type": "String"
-			},
-			"primeira_data": {
-				"type": "String"
 			}
 		},
 		"annotations": []
