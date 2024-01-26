@@ -65,7 +65,7 @@
 					},
 					"ifTrueActivities": [
 						{
-							"name": "copia_salva",
+							"name": "copia_salva_dl",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
