@@ -49,8 +49,6 @@
 			{
 				"name": "confere_existencia_dados",
 				"type": "IfCondition",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "dados_cotacao_api",
