@@ -32,6 +32,52 @@
 					"enableStaging": false,
 					"translator": {
 						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CIDADE",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "COD_CIDADE",
+									"type": "Decimal",
+									"physicalType": "DECIMAL"
+								}
+							},
+							{
+								"source": {
+									"name": "CIDADE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CIDADE",
+									"type": "String",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "ESTADO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ESTADO",
+									"type": "String",
+									"physicalType": "UTF8"
+								}
+							},
+							{
+								"source": {
+									"name": "PAIS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PAIS",
+									"type": "String",
+									"physicalType": "UTF8"
+								}
+							}
+						],
 						"typeConversion": true,
 						"typeConversionSettings": {
 							"allowDataTruncation": true,
@@ -52,7 +98,14 @@
 				"outputs": [
 					{
 						"referenceName": "ds_data_lake_parquet_generico",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"container": "tabelas-bd",
+							"nome_arquivo": {
+								"value": "@substring(pipeline().Pipeline, 4, 99)",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
