@@ -5,6 +5,10 @@
 			"dl_container_tabelas_bd": {
 				"type": "string",
 				"value": "tabelas-bd"
+			},
+			"dl_arquivos_csv": {
+				"type": "string",
+				"value": "arquivos-csv"
 			}
 		}
 	},
