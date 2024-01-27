@@ -21,8 +21,13 @@
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
-						"type": "OracleSink",
-						"writeBatchSize": 10000
+						"type": "ParquetSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "ParquetWriteSettings"
+						}
 					},
 					"enableStaging": false,
 					"translator": {
@@ -46,7 +51,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_oracle_generico",
+						"referenceName": "ds_data_lake_parquet_generico",
 						"type": "DatasetReference"
 					}
 				]

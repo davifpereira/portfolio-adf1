@@ -18,7 +18,7 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": {
-				"value": "@dataset().owner",
+				"value": "CONSULTORIA_BI",
 				"type": "Expression"
 			},
 			"table": {
