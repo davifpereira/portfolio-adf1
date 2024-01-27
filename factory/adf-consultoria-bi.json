@@ -1,5 +1,13 @@
 {
 	"name": "adf-consultoria-bi",
+	"properties": {
+		"globalParameters": {
+			"dl_container_tabelas_bd": {
+				"type": "string",
+				"value": "tabelas-bd"
+			}
+		}
+	},
 	"location": "brazilsouth",
 	"identity": {
 		"type": "SystemAssigned",
