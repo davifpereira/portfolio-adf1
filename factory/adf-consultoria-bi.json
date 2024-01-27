@@ -17,10 +17,6 @@
 			"dl_dados_api": {
 				"type": "string",
 				"value": "dados-api"
-			},
-			"bd_host_owner": {
-				"type": "string",
-				"value": "CONSULTORIA_BI"
 			}
 		}
 	},
