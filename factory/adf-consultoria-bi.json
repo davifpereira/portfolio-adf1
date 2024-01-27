@@ -13,6 +13,10 @@
 			"dl_arquivos_excel": {
 				"type": "string",
 				"value": "arquivos-excel"
+			},
+			"dl_dados_api": {
+				"type": "string",
+				"value": "dados-api"
 			}
 		}
 	},
