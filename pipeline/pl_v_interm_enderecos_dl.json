@@ -21,12 +21,14 @@
 						"queryTimeout": "02:00:00"
 					},
 					"sink": {
-						"type": "ParquetSink",
+						"type": "DelimitedTextSink",
 						"storeSettings": {
 							"type": "AzureBlobFSWriteSettings"
 						},
 						"formatSettings": {
-							"type": "ParquetWriteSettings"
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
 						}
 					},
 					"enableStaging": false,
@@ -40,8 +42,8 @@
 								},
 								"sink": {
 									"name": "COD_CIDADE",
-									"type": "Decimal",
-									"physicalType": "DECIMAL"
+									"type": "String",
+									"physicalType": "String"
 								}
 							},
 							{
@@ -52,7 +54,7 @@
 								"sink": {
 									"name": "CIDADE",
 									"type": "String",
-									"physicalType": "UTF8"
+									"physicalType": "String"
 								}
 							},
 							{
@@ -63,7 +65,7 @@
 								"sink": {
 									"name": "ESTADO",
 									"type": "String",
-									"physicalType": "UTF8"
+									"physicalType": "String"
 								}
 							},
 							{
@@ -74,7 +76,7 @@
 								"sink": {
 									"name": "PAIS",
 									"type": "String",
-									"physicalType": "UTF8"
+									"physicalType": "String"
 								}
 							}
 						],
@@ -97,14 +99,19 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_data_lake_parquet_generico",
+						"referenceName": "ds_data_lake_csv_generico",
 						"type": "DatasetReference",
 						"parameters": {
-							"container": "tabelas-bd",
-							"nome_arquivo": {
-								"value": "@replace(pipeline().Pipeline, 'pl_', '')",
+							"container": {
+								"value": "@pipeline().globalParameters.dl_arquivos_csv",
 								"type": "Expression"
-							}
+							},
+							"nome_arquivo": {
+								"value": "@concat(replace(pipeline().Pipeline, 'pl_', ''), '.csv')",
+								"type": "Expression"
+							},
+							"separador": "'|'",
+							"encoding": "UTF-8"
 						}
 					}
 				]
