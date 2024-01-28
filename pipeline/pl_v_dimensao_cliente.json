@@ -38,44 +38,55 @@
 						"mappings": [
 							{
 								"source": {
+									"name": "COD_CLIENTE",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOME_CLIENTE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NOME_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DT_DESATIVACAO",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DT_DESATIVACAO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PORTE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PORTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
 									"name": "COD_CIDADE",
 									"type": "Decimal"
 								},
 								"sink": {
 									"name": "COD_CIDADE",
-									"type": "String",
-									"physicalType": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "CIDADE",
-									"type": "String"
-								},
-								"sink": {
-									"name": "CIDADE",
-									"type": "String",
-									"physicalType": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "ESTADO",
-									"type": "String"
-								},
-								"sink": {
-									"name": "ESTADO",
-									"type": "String",
-									"physicalType": "String"
-								}
-							},
-							{
-								"source": {
-									"name": "PAIS",
-									"type": "String"
-								},
-								"sink": {
-									"name": "PAIS",
 									"type": "String",
 									"physicalType": "String"
 								}
@@ -108,7 +119,7 @@
 								"type": "Expression"
 							},
 							"nome_arquivo": {
-								"value": "@concat(replace(pipeline().Pipeline, 'pl_v', ''), '.csv')",
+								"value": "@concat(replace(pipeline().Pipeline, 'pl_v_', ''), '.csv')",
 								"type": "Expression"
 							},
 							"separador": "'|'",
