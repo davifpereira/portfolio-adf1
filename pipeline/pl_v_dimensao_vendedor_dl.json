@@ -238,6 +238,9 @@
 				]
 			}
 		],
+		"folder": {
+			"name": "Data lake/Banco de dados"
+		},
 		"annotations": []
 	}
 }
