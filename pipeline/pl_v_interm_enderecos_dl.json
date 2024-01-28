@@ -107,7 +107,7 @@
 								"type": "Expression"
 							},
 							"nome_arquivo": {
-								"value": "@concat(replace(pipeline().Pipeline, 'pl_v_', ''), '.csv')",
+								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
 								"type": "Expression"
 							},
 							"separador": "'|'",
