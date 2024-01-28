@@ -130,6 +130,9 @@
 				"type": "String"
 			}
 		},
+		"folder": {
+			"name": "Data lake/API"
+		},
 		"annotations": []
 	}
 }
