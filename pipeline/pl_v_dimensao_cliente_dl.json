@@ -1,5 +1,5 @@
 {
-	"name": "pl_v_dimensao_cliente",
+	"name": "pl_v_dimensao_cliente_dl",
 	"properties": {
 		"activities": [
 			{
@@ -119,7 +119,7 @@
 								"type": "Expression"
 							},
 							"nome_arquivo": {
-								"value": "@concat(replace(pipeline().Pipeline, 'pl_v_', ''), '.csv')",
+								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
 								"type": "Expression"
 							},
 							"separador": "'|'",
