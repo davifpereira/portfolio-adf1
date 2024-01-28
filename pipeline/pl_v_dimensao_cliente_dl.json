@@ -105,7 +105,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"owner": "CONSULTORIA_BI",
-							"view": "V_DIMENSAO_CLIENTE"
+							"view": "*"
 						}
 					}
 				],
