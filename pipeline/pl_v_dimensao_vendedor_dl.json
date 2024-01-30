@@ -232,7 +232,7 @@
 								"type": "Expression"
 							},
 							"separador": "@pipeline().globalParameters.separador_padrao",
-							"encoding": "UTF-8"
+							"encoding": "@pipeline().globalParameters.encoding_padrao"
 						}
 					}
 				]
