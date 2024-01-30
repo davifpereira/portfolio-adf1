@@ -1,5 +1,5 @@
 {
-	"name": "ds_datalake_excel_generico",
+	"name": "ds_data_lake_excel_generico",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_datalake",
