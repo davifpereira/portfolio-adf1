@@ -21,6 +21,10 @@
 			"separador_padrao": {
 				"type": "string",
 				"value": "|"
+			},
+			"encoding_padrao": {
+				"type": "string",
+				"value": "UTF-8"
 			}
 		}
 	},
