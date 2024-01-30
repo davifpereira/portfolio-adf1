@@ -17,6 +17,10 @@
 			"dl_dados_api": {
 				"type": "string",
 				"value": "dados-api"
+			},
+			"separador_padrao": {
+				"type": "string",
+				"value": "|"
 			}
 		}
 	},
