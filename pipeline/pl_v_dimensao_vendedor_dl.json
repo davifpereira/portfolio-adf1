@@ -231,7 +231,7 @@
 								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
 								"type": "Expression"
 							},
-							"separador": "'|'",
+							"separador": "@pipeline().globalParameters.separador_padrao",
 							"encoding": "UTF-8"
 						}
 					}

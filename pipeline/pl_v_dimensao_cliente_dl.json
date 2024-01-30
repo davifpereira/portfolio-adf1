@@ -122,8 +122,14 @@
 								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
 								"type": "Expression"
 							},
-							"separador": "'|'",
-							"encoding": "UTF-8"
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
+							}
 						}
 					}
 				]
