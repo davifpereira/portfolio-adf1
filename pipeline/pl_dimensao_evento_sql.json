@@ -72,18 +72,6 @@
 									"type": "String",
 									"physicalType": "nvarchar"
 								}
-							},
-							{
-								"source": {
-									"name": "DT_DESATIVACAO",
-									"type": "String",
-									"physicalType": "String"
-								},
-								"sink": {
-									"name": "DT_DESATIVACAO",
-									"type": "String",
-									"physicalType": "nvarchar"
-								}
 							}
 						],
 						"typeConversion": true,
