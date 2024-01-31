@@ -36,6 +36,56 @@
 					"enableStaging": false,
 					"translator": {
 						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EVENTO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "EVENTO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DESCRICAO_EVENTO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DESCRICAO_EVENTO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OPERACAO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "OPERACAO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DT_DESATIVACAO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DT_DESATIVACAO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
 						"typeConversion": true,
 						"typeConversionSettings": {
 							"allowDataTruncation": true,
@@ -70,7 +120,14 @@
 				"outputs": [
 					{
 						"referenceName": "ds_azure_sql_db_generico",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "faturamento",
+							"tabela": {
+								"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
