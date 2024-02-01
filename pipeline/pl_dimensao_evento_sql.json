@@ -5,6 +5,8 @@
 			{
 				"name": "copia_salva",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "nome_tabela",
@@ -36,7 +38,7 @@
 					"sink": {
 						"type": "AzureSqlSink",
 						"preCopyScript": {
-							"value": "@concat('DELETE FROM FROM ', variables('schema'), '.', variables('nome_tabela'))",
+							"value": "@concat('DELETE FROM ', variables('schema'), '.', variables('nome_tabela'))",
 							"type": "Expression"
 						},
 						"writeBehavior": "insert",
@@ -145,6 +147,30 @@
 					"variableName": "nome_tabela",
 					"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')"
 				}
+			},
+			{
+				"name": "teste",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "nome_tabela",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "teste",
+					"value": {
+						"value": "@concat('DELETE FROM FROM ', variables('schema'), '.', variables('nome_tabela'))",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"variables": {
@@ -154,6 +180,9 @@
 			"schema": {
 				"type": "String",
 				"defaultValue": "faturamento"
+			},
+			"teste": {
+				"type": "String"
 			}
 		},
 		"folder": {
