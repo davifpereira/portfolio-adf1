@@ -1,5 +1,5 @@
 {
-	"name": "pl_dimensao_evento_sql",
+	"name": "pl_dimensao_vendedor_sql",
 	"properties": {
 		"activities": [
 			{
@@ -35,55 +35,14 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
-						"preCopyScript": {
-							"value": "@concat('DELETE FROM ', variables('schema'), '.', variables('nome_tabela'))",
-							"type": "Expression"
-						},
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
+						"tableOption": "autoCreate",
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
 					"translator": {
 						"type": "TabularTranslator",
-						"mappings": [
-							{
-								"source": {
-									"name": "EVENTO",
-									"type": "String",
-									"physicalType": "String"
-								},
-								"sink": {
-									"name": "EVENTO",
-									"type": "String",
-									"physicalType": "nvarchar"
-								}
-							},
-							{
-								"source": {
-									"name": "DESCRICAO_EVENTO",
-									"type": "String",
-									"physicalType": "String"
-								},
-								"sink": {
-									"name": "DESCRICAO_EVENTO",
-									"type": "String",
-									"physicalType": "nvarchar"
-								}
-							},
-							{
-								"source": {
-									"name": "OPERACAO",
-									"type": "String",
-									"physicalType": "String"
-								},
-								"sink": {
-									"name": "OPERACAO",
-									"type": "String",
-									"physicalType": "nvarchar"
-								}
-							}
-						],
 						"typeConversion": true,
 						"typeConversionSettings": {
 							"allowDataTruncation": true,
@@ -153,7 +112,7 @@
 			},
 			"schema": {
 				"type": "String",
-				"defaultValue": "faturamento"
+				"defaultValue": "comercial"
 			}
 		},
 		"folder": {
