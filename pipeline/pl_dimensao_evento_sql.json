@@ -5,7 +5,14 @@
 			{
 				"name": "copia_salva",
 				"type": "Copy",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "nome_tabela",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 3,
@@ -28,9 +35,12 @@
 					},
 					"sink": {
 						"type": "AzureSqlSink",
+						"preCopyScript": {
+							"value": "@concat('DELETE FROM FROM ', variables('schema'), '.', variables('nome_tabela'))",
+							"type": "Expression"
+						},
 						"writeBehavior": "insert",
 						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
 						"disableMetricsCollection": false
 					},
 					"enableStaging": false,
@@ -110,16 +120,42 @@
 						"referenceName": "ds_azure_sql_db_generico",
 						"type": "DatasetReference",
 						"parameters": {
-							"schema": "faturamento",
+							"schema": {
+								"value": "@variables('schema')",
+								"type": "Expression"
+							},
 							"tabela": {
-								"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
+								"value": "@variables('nome_tabela')",
 								"type": "Expression"
 							}
 						}
 					}
 				]
+			},
+			{
+				"name": "nome_tabela",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "nome_tabela",
+					"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')"
+				}
 			}
 		],
+		"variables": {
+			"nome_tabela": {
+				"type": "String"
+			},
+			"schema": {
+				"type": "String",
+				"defaultValue": "faturamento"
+			}
+		},
 		"folder": {
 			"name": "SQL Server"
 		},
