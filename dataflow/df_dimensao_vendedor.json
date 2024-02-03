@@ -6,20 +6,28 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "ds_data_lake_data_flows_dev_1",
+						"referenceName": "ds_data_lake_csv_generico",
 						"type": "DatasetReference"
 					},
 					"name": "DimVendedor"
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_data_lake_data_flows_dev_2",
+						"referenceName": "ds_data_lake_csv_generico",
 						"type": "DatasetReference"
 					},
 					"name": "DadosGeograficos"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_generico",
+						"type": "DatasetReference"
+					},
+					"name": "DestinoAzureSQL"
+				}
+			],
 			"transformations": [
 				{
 					"name": "join"
@@ -29,34 +37,11 @@
 				}
 			],
 			"scriptLines": [
-				"source(output(",
-				"          COD_VENDEDOR as integer,",
-				"          NOME_COMPLETO as string,",
-				"          CARGO as string,",
-				"          REGIAO_VENDA as string,",
-				"          CIDADE_ATUACAO as integer,",
-				"          COD_SUP_1 as integer,",
-				"          NOME_COMP_1 as string,",
-				"          COD_SUP_2 as integer,",
-				"          NOME_COMP_2 as string,",
-				"          COD_SUP_3 as integer,",
-				"          NOME_COMP_3 as string,",
-				"          COD_SUP_4 as integer,",
-				"          NOME_COMP_4 as string,",
-				"          COD_SUP_5 as integer,",
-				"          NOME_COMP_5 as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
+				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false) ~> DimVendedor",
-				"source(output(",
-				"          COD_CIDADE as integer,",
-				"          CIDADE as string,",
-				"          ESTADO as string,",
-				"          PAIS as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
+				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false) ~> DadosGeograficos",
@@ -83,7 +68,18 @@
 				"          NOME_COMP_5",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select"
+				"     skipDuplicateMapOutputs: true) ~> select",
+				"select sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     truncate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DestinoAzureSQL"
 			]
 		}
 	}
