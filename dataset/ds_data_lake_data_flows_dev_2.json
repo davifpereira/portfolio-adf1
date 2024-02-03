@@ -11,7 +11,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "interm_enderecos.csv",
-				"folderPath": "tabelas-bd"
+				"fileSystem": "tabelas-bd"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
