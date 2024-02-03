@@ -5,6 +5,8 @@
 			{
 				"name": "copia_salva",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "nome_tabela",
@@ -102,7 +104,65 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "nome_tabela",
-					"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')"
+					"value": {
+						"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "insert_tabela_dw",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "nome_tabela",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_dimensao_vendedor",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"DimVendedor": {
+								"container": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"nome_arquivo": "@concat(replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', ''), '.csv')",
+								"separador": "@pipeline().globalParameters.separador_padrao",
+								"encoding": "@pipeline().globalParameters.encoding_padrao"
+							},
+							"DadosGeograficos": {
+								"container": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"nome_arquivo": {
+									"value": "@variables('tabela_join')",
+									"type": "Expression"
+								},
+								"separador": "@pipeline().globalParameters.separador_padrao",
+								"encoding": "@pipeline().globalParameters.encoding_padrao"
+							},
+							"DestinoAzureSQL": {
+								"schema": "@variables('schema')",
+								"tabela": "@variables('nome_tabela')"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None",
+					"cacheSinks": {
+						"firstRowOnly": true
+					}
 				}
 			}
 		],
@@ -113,6 +173,10 @@
 			"schema": {
 				"type": "String",
 				"defaultValue": "comercial"
+			},
+			"tabela_join": {
+				"type": "String",
+				"defaultValue": "interm_enderecos.csv"
 			}
 		},
 		"folder": {
