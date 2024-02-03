@@ -1,0 +1,34 @@
+{
+	"name": "df_dimensao_vendedor",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference"
+					},
+					"name": "DimVendedor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference"
+					},
+					"name": "DadosGeograficos"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> DimVendedor",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> DadosGeograficos"
+			]
+		}
+	}
+}
