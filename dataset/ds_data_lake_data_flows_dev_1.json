@@ -11,7 +11,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "dimensao_vendedor.csv",
-				"folderPath": "tabelas-bd"
+				"fileSystem": "tabelas-bd"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
