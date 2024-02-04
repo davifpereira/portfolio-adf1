@@ -1,33 +1,19 @@
 {
-	"name": "ds_azure_sql_db_generico_copy1",
+	"name": "ds_azure_sql_db_dim_vendedores",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_azure_sql_database",
 			"type": "LinkedServiceReference"
 		},
-		"parameters": {
-			"schema": {
-				"type": "string"
-			},
-			"tabela": {
-				"type": "string"
-			}
-		},
 		"folder": {
-			"name": "Azure SQL Server"
+			"name": "Azure SQL Server/Específicos"
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": {
-				"value": "@dataset().schema",
-				"type": "Expression"
-			},
-			"table": {
-				"value": "@dataset().tabela",
-				"type": "Expression"
-			}
+			"schema": "comercial",
+			"table": "dimensao_vendedores"
 		}
 	}
 }
