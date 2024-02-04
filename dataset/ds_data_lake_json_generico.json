@@ -17,6 +17,9 @@
 				"defaultValue": "UTF-8"
 			}
 		},
+		"folder": {
+			"name": "Data Lake/Genéricos"
+		},
 		"annotations": [],
 		"type": "Json",
 		"typeProperties": {
