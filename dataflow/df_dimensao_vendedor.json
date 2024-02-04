@@ -37,10 +37,6 @@
 				}
 			],
 			"scriptLines": [
-				"parameters{",
-				"     dimensao_vendedor as string,",
-				"     interm_enderecos as string",
-				"}",
 				"source(useSchema: false,",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
