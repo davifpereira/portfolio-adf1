@@ -21,10 +21,6 @@
 			],
 			"sinks": [
 				{
-					"linkedService": {
-						"referenceName": "ls_azure_sql_database",
-						"type": "LinkedServiceReference"
-					},
 					"name": "DestinoAzureSQL"
 				}
 			],
@@ -37,22 +33,11 @@
 				}
 			],
 			"scriptLines": [
-				"source(output(",
-				"          {COD_VENDEDOR|NOME_COMPLETO|CARGO|REG} as string,",
-				"          {AO_VENDA|C} as string,",
-				"          {DADE_ATUACAO|COD_SUP_1|NOME_COMP_1|COD_SUP_2|NOME_COMP_2|COD_SUP_3|NOME_COMP_3|COD_SUP_4|NOME_COMP_4|COD_SUP_5|NOME_COMP_5} as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
+				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false) ~> DimVendedor",
-				"source(output(",
-				"          COD_CIDADE as short,",
-				"          CIDADE as string,",
-				"          ESTADO as string,",
-				"          PAIS as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
+				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false) ~> DadosGeograficos",
@@ -82,19 +67,9 @@
 				"     skipDuplicateMapOutputs: true) ~> select",
 				"select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'table',",
-				"     store: 'sqlserver',",
-				"     schemaName: 'comercial',",
-				"     tableName: 'dimensao_vendedor',",
-				"     insertable: true,",
-				"     updateable: false,",
-				"     deletable: false,",
-				"     upsertable: false,",
-				"     recreate: true,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> DestinoAzureSQL"
+				"     saveOrder: 1) ~> DestinoAzureSQL"
 			]
 		}
 	}
