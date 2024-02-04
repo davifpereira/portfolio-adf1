@@ -24,7 +24,14 @@
 				"fileName": "interm_enderecos.csv",
 				"fileSystem": "tabelas-bd"
 			},
-			"columnDelimiter": "|",
+			"columnDelimiter": {
+				"value": "@dataset().separador",
+				"type": "Expression"
+			},
+			"encodingName": {
+				"value": "@dataset().encoding",
+				"type": "Expression"
+			},
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""
