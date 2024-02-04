@@ -3,124 +3,9 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "copia_salva",
-				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [
-					{
-						"activity": "nome_tabela",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 3,
-					"retryIntervalInSeconds": 60,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": false,
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"writeBehavior": "insert",
-						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
-						"disableMetricsCollection": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "ds_data_lake_csv_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"container": {
-								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
-								"type": "Expression"
-							},
-							"nome_arquivo": {
-								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', ''), '.csv')",
-								"type": "Expression"
-							},
-							"separador": {
-								"value": "@pipeline().globalParameters.separador_padrao",
-								"type": "Expression"
-							},
-							"encoding": {
-								"value": "@pipeline().globalParameters.encoding_padrao",
-								"type": "Expression"
-							}
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "ds_azure_sql_db_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"schema": {
-								"value": "@variables('schema')",
-								"type": "Expression"
-							},
-							"tabela": {
-								"value": "@variables('nome_tabela')",
-								"type": "Expression"
-							}
-						}
-					}
-				]
-			},
-			{
-				"name": "nome_tabela",
-				"type": "SetVariable",
-				"dependsOn": [],
-				"policy": {
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"variableName": "nome_tabela",
-					"value": {
-						"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
-						"type": "Expression"
-					}
-				}
-			},
-			{
 				"name": "insert_tabela_dw",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "nome_tabela",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 3,
@@ -145,19 +30,6 @@
 				}
 			}
 		],
-		"variables": {
-			"nome_tabela": {
-				"type": "String"
-			},
-			"schema": {
-				"type": "String",
-				"defaultValue": "comercial"
-			},
-			"tabela_join": {
-				"type": "String",
-				"defaultValue": "interm_enderecos.csv"
-			}
-		},
 		"folder": {
 			"name": "Azure SQL Server"
 		},
