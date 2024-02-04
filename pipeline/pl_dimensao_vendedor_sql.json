@@ -135,23 +135,50 @@
 						"type": "DataFlowReference",
 						"datasetParameters": {
 							"DimVendedor": {
-								"container": "@pipeline().globalParameters.dl_container_tabelas_bd",
-								"nome_arquivo": "@concat(replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', ''), '.csv')",
-								"separador": "@pipeline().globalParameters.separador_padrao",
-								"encoding": "@pipeline().globalParameters.encoding_padrao"
+								"container": {
+									"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+									"type": "Expression"
+								},
+								"nome_arquivo": {
+									"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', ''), '.csv')",
+									"type": "Expression"
+								},
+								"separador": {
+									"value": "@pipeline().globalParameters.separador_padrao",
+									"type": "Expression"
+								},
+								"encoding": {
+									"value": "@pipeline().globalParameters.encoding_padrao",
+									"type": "Expression"
+								}
 							},
 							"DadosGeograficos": {
-								"container": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"container": {
+									"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+									"type": "Expression"
+								},
 								"nome_arquivo": {
 									"value": "@variables('tabela_join')",
 									"type": "Expression"
 								},
-								"separador": "@pipeline().globalParameters.separador_padrao",
-								"encoding": "@pipeline().globalParameters.encoding_padrao"
+								"separador": {
+									"value": "@pipeline().globalParameters.separador_padrao",
+									"type": "Expression"
+								},
+								"encoding": {
+									"value": "@pipeline().globalParameters.encoding_padrao",
+									"type": "Expression"
+								}
 							},
 							"DestinoAzureSQL": {
-								"schema": "@variables('schema')",
-								"tabela": "@variables('nome_tabela')"
+								"schema": {
+									"value": "@variables('schema')",
+									"type": "Expression"
+								},
+								"tabela": {
+									"value": "@variables('nome_tabela')",
+									"type": "Expression"
+								}
 							}
 						}
 					},
