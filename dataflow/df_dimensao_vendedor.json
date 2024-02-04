@@ -21,6 +21,10 @@
 			],
 			"sinks": [
 				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_vendedores",
+						"type": "DatasetReference"
+					},
 					"name": "DestinoAzureSQL"
 				}
 			],
@@ -67,9 +71,16 @@
 				"     skipDuplicateMapOutputs: true) ~> select",
 				"select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1) ~> DestinoAzureSQL"
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DestinoAzureSQL"
 			]
 		}
 	}
