@@ -132,45 +132,16 @@
 				"typeProperties": {
 					"dataflow": {
 						"referenceName": "df_dimensao_vendedor",
-						"type": "DataFlowReference",
-						"datasetParameters": {
-							"DimVendedor": {
-								"separador": {
-									"value": "@pipeline().globalParameters.separador_padrao",
-									"type": "Expression"
-								},
-								"encoding": {
-									"value": "@pipeline().globalParameters.encoding_padrao",
-									"type": "Expression"
-								}
-							},
-							"DadosGeograficos": {
-								"separador": {
-									"value": "@pipeline().globalParameters.separador_padrao",
-									"type": "Expression"
-								},
-								"encoding": {
-									"value": "@pipeline().globalParameters.encoding_padrao",
-									"type": "Expression"
-								}
-							},
-							"DestinoAzureSQL": {
-								"schema": {
-									"value": "@variables('schema')",
-									"type": "Expression"
-								},
-								"tabela": {
-									"value": "@variables('nome_tabela')",
-									"type": "Expression"
-								}
-							}
-						}
+						"type": "DataFlowReference"
 					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
 					},
-					"traceLevel": "Fine"
+					"traceLevel": "None",
+					"cacheSinks": {
+						"firstRowOnly": true
+					}
 				}
 			}
 		],
