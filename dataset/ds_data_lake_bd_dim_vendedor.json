@@ -24,14 +24,7 @@
 				"fileName": "dimensao_vendedor.csv",
 				"fileSystem": "tabelas-bd"
 			},
-			"columnDelimiter": {
-				"value": "@dataset().separador",
-				"type": "Expression"
-			},
-			"encodingName": {
-				"value": "@dataset().encoding",
-				"type": "Expression"
-			},
+			"columnDelimiter": "|",
 			"escapeChar": "\\",
 			"firstRowAsHeader": true,
 			"quoteChar": "\""

@@ -5,16 +5,16 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"linkedService": {
-						"referenceName": "ls_datalake",
-						"type": "LinkedServiceReference"
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_dim_vendedor",
+						"type": "DatasetReference"
 					},
 					"name": "DimVendedor"
 				},
 				{
-					"linkedService": {
-						"referenceName": "ls_datalake",
-						"type": "LinkedServiceReference"
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_enderecos",
+						"type": "DatasetReference"
 					},
 					"name": "DadosGeograficos"
 				}
@@ -37,30 +37,20 @@
 				}
 			],
 			"scriptLines": [
-				"source(useSchema: false,",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> DimVendedor",
+				"source(output(",
+				"          COD_C as string,",
+				"          {DADE|C} as string,",
+				"          {DADE|ESTADO|PA} as string,",
+				"          S as string",
+				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'delimited',",
-				"     fileSystem: 'tabelas-bd',",
-				"     fileName: 'dimensao_vendedor.csv',",
-				"     columnDelimiter: '|',",
-				"     escapeChar: '\\\\',",
-				"     quoteChar: '\\\"',",
-				"     columnNamesAsHeader: false) ~> DimVendedor",
-				"source(useSchema: false,",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false,",
-				"     format: 'delimited',",
-				"     fileSystem: 'tabelas-bd',",
-				"     fileName: 'interm_enderecos.csv',",
-				"     columnDelimiter: '|',",
-				"     escapeChar: '\\\\',",
-				"     quoteChar: '\\\"',",
-				"     columnNamesAsHeader: false) ~> DadosGeograficos",
+				"     ignoreNoFilesFound: false) ~> DadosGeograficos",
 				"DimVendedor, DadosGeograficos join(CIDADE_ATUACAO == COD_CIDADE,",
 				"     joinType:'left',",
 				"     matchType:'exact',",

@@ -135,14 +135,6 @@
 						"type": "DataFlowReference",
 						"datasetParameters": {
 							"DimVendedor": {
-								"container": {
-									"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
-									"type": "Expression"
-								},
-								"nome_arquivo": {
-									"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', ''), '.csv')",
-									"type": "Expression"
-								},
 								"separador": {
 									"value": "@pipeline().globalParameters.separador_padrao",
 									"type": "Expression"
@@ -153,14 +145,6 @@
 								}
 							},
 							"DadosGeograficos": {
-								"container": {
-									"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
-									"type": "Expression"
-								},
-								"nome_arquivo": {
-									"value": "@variables('tabela_join')",
-									"type": "Expression"
-								},
 								"separador": {
 									"value": "@pipeline().globalParameters.separador_padrao",
 									"type": "Expression"
