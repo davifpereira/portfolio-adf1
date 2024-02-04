@@ -5,25 +5,25 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"dataset": {
-						"referenceName": "ds_data_lake_csv_generico",
-						"type": "DatasetReference"
+					"linkedService": {
+						"referenceName": "ls_datalake",
+						"type": "LinkedServiceReference"
 					},
 					"name": "DimVendedor"
 				},
 				{
-					"dataset": {
-						"referenceName": "ds_data_lake_csv_generico",
-						"type": "DatasetReference"
+					"linkedService": {
+						"referenceName": "ls_datalake",
+						"type": "LinkedServiceReference"
 					},
 					"name": "DadosGeograficos"
 				}
 			],
 			"sinks": [
 				{
-					"dataset": {
-						"referenceName": "ds_azure_sql_db_generico",
-						"type": "DatasetReference"
+					"linkedService": {
+						"referenceName": "ls_azure_sql_database",
+						"type": "LinkedServiceReference"
 					},
 					"name": "DestinoAzureSQL"
 				}
@@ -37,14 +37,34 @@
 				}
 			],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
+				"parameters{",
+				"     dimensao_vendedor as string,",
+				"     interm_enderecos as string",
+				"}",
+				"source(useSchema: false,",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> DimVendedor",
-				"source(allowSchemaDrift: true,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'tabelas-bd',",
+				"     fileName: 'dimensao_vendedor.csv',",
+				"     columnDelimiter: '|',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: false) ~> DimVendedor",
+				"source(useSchema: false,",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> DadosGeograficos",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'delimited',",
+				"     fileSystem: 'tabelas-bd',",
+				"     fileName: 'interm_enderecos.csv',",
+				"     columnDelimiter: '|',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: false) ~> DadosGeograficos",
 				"DimVendedor, DadosGeograficos join(CIDADE_ATUACAO == COD_CIDADE,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
@@ -71,14 +91,18 @@
 				"     skipDuplicateMapOutputs: true) ~> select",
 				"select sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     deletable:false,",
-				"     insertable:true,",
-				"     updateable:false,",
-				"     upsertable:false,",
-				"     recreate:true,",
 				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'comercial',",
+				"     tableName: 'dimensao_vendedor',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     recreate: true,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError') ~> DestinoAzureSQL"
 			]
 		}
