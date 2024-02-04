@@ -19,6 +19,9 @@
 				"type": "string"
 			}
 		},
+		"folder": {
+			"name": "Data Lake/Genéricos"
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {

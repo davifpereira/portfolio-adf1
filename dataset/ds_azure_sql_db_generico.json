@@ -13,6 +13,9 @@
 				"type": "string"
 			}
 		},
+		"folder": {
+			"name": "Azure SQL Server"
+		},
 		"annotations": [],
 		"type": "AzureSqlTable",
 		"schema": [],

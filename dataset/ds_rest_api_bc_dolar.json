@@ -16,6 +16,9 @@
 				"type": "string"
 			}
 		},
+		"folder": {
+			"name": "APIs"
+		},
 		"annotations": [],
 		"type": "RestResource",
 		"schema": []
