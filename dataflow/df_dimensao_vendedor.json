@@ -98,7 +98,7 @@
 				"     insertable:true,",
 				"     updateable:false,",
 				"     upsertable:false,",
-				"     recreate:true,",
+				"     truncate:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
