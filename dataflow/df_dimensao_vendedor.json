@@ -1,0 +1,109 @@
+{
+	"name": "df_dimensao_vendedor",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_dim_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "DimVendedor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_enderecos",
+						"type": "DatasetReference"
+					},
+					"name": "Enderecos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_vendedores",
+						"type": "DatasetReference"
+					},
+					"name": "DestinoDW"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LeftJoin"
+				},
+				{
+					"name": "select"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          COD_VENDEDOR as integer,",
+				"          NOME_COMPLETO as string,",
+				"          CARGO as string,",
+				"          REGIAO_VENDA as string,",
+				"          CIDADE_ATUACAO as integer,",
+				"          COD_SUP_1 as integer,",
+				"          NOME_COMP_1 as string,",
+				"          COD_SUP_2 as integer,",
+				"          NOME_COMP_2 as string,",
+				"          COD_SUP_3 as integer,",
+				"          NOME_COMP_3 as string,",
+				"          COD_SUP_4 as integer,",
+				"          NOME_COMP_4 as string,",
+				"          COD_SUP_5 as integer,",
+				"          NOME_COMP_5 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> DimVendedor",
+				"source(output(",
+				"          COD_CIDADE as integer,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> Enderecos",
+				"DimVendedor, Enderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoin",
+				"LeftJoin select(mapColumn(",
+				"          COD_VENDEDOR,",
+				"          NOME_COMPLETO,",
+				"          CARGO,",
+				"          REGIAO_VENDA,",
+				"          CIDADE_ATUACAO = CIDADE,",
+				"          COD_SUP_1,",
+				"          NOME_COMP_1,",
+				"          COD_SUP_2,",
+				"          NOME_COMP_2,",
+				"          COD_SUP_3,",
+				"          NOME_COMP_3,",
+				"          COD_SUP_4,",
+				"          NOME_COMP_4,",
+				"          COD_SUP_5,",
+				"          NOME_COMP_5",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select",
+				"select sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     recreate:true,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> DestinoDW"
+			]
+		}
+	}
+}
