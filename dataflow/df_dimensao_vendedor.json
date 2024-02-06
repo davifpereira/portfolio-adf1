@@ -34,6 +34,9 @@
 				},
 				{
 					"name": "select"
+				},
+				{
+					"name": "SurrogateKey"
 				}
 			],
 			"scriptLines": [
@@ -92,7 +95,10 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select",
-				"select sink(allowSchemaDrift: true,",
+				"LeftJoin keyGenerate(output(sk_vendedor as long),",
+				"     startAt: 1L,",
+				"     stepValue: 1L) ~> SurrogateKey",
+				"SurrogateKey sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
