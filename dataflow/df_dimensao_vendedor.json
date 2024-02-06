@@ -33,10 +33,13 @@
 					"name": "LeftJoin"
 				},
 				{
-					"name": "select"
+					"name": "SelecionarColunas"
 				},
 				{
 					"name": "SurrogateKey"
+				},
+				{
+					"name": "OrdenarColunas"
 				}
 			],
 			"scriptLines": [
@@ -94,17 +97,37 @@
 				"          NOME_COMP_5",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select",
-				"LeftJoin keyGenerate(output(sk_vendedor as long),",
+				"     skipDuplicateMapOutputs: true) ~> SelecionarColunas",
+				"SelecionarColunas keyGenerate(output(SK_VENDEDOR as long),",
 				"     startAt: 1L,",
 				"     stepValue: 1L) ~> SurrogateKey",
-				"SurrogateKey sink(allowSchemaDrift: true,",
+				"SurrogateKey select(mapColumn(",
+				"          SK_VENDEDOR,",
+				"          COD_VENDEDOR,",
+				"          NOME_COMPLETO,",
+				"          CARGO,",
+				"          REGIAO_VENDA,",
+				"          CIDADE_ATUACAO,",
+				"          COD_SUP_1,",
+				"          NOME_COMP_1,",
+				"          COD_SUP_2,",
+				"          NOME_COMP_2,",
+				"          COD_SUP_3,",
+				"          NOME_COMP_3,",
+				"          COD_SUP_4,",
+				"          NOME_COMP_4,",
+				"          COD_SUP_5,",
+				"          NOME_COMP_5",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> OrdenarColunas",
+				"OrdenarColunas sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
 				"     insertable:true,",
 				"     updateable:false,",
 				"     upsertable:false,",
-				"     truncate:true,",
+				"     recreate:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
