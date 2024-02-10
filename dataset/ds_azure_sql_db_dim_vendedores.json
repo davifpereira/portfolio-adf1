@@ -81,6 +81,18 @@
 			{
 				"name": "NOME_COMP_5",
 				"type": "nvarchar"
+			},
+			{
+				"name": "ATIVO",
+				"type": "char"
+			},
+			{
+				"name": "DT_INICIO",
+				"type": "date"
+			},
+			{
+				"name": "DT_FIM",
+				"type": "date"
 			}
 		],
 		"typeProperties": {
