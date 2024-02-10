@@ -9,14 +9,21 @@
 						"referenceName": "ds_data_lake_bd_dim_vendedor",
 						"type": "DatasetReference"
 					},
-					"name": "DimVendedor"
+					"name": "CSVdimVendedor"
 				},
 				{
 					"dataset": {
 						"referenceName": "ds_data_lake_bd_enderecos",
 						"type": "DatasetReference"
 					},
-					"name": "Enderecos"
+					"name": "CSVenderecos"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_vendedores",
+						"type": "DatasetReference"
+					},
+					"name": "DBdimVendedor"
 				}
 			],
 			"sinks": [
@@ -36,10 +43,10 @@
 					"name": "SelecionarColunas"
 				},
 				{
-					"name": "SurrogateKey"
+					"name": "OrdenarColunas"
 				},
 				{
-					"name": "OrdenarColunas"
+					"name": "NotExists"
 				}
 			],
 			"scriptLines": [
@@ -63,7 +70,7 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> DimVendedor",
+				"     ignoreNoFilesFound: false) ~> CSVdimVendedor",
 				"source(output(",
 				"          COD_CIDADE as integer,",
 				"          CIDADE as string,",
@@ -73,8 +80,34 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> Enderecos",
-				"DimVendedor, Enderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+				"     ignoreNoFilesFound: false) ~> CSVenderecos",
+				"source(output(",
+				"          SK_VENDEDOR as integer,",
+				"          COD_VENDEDOR as integer,",
+				"          NOME_COMPLETO as string,",
+				"          CARGO as string,",
+				"          REGIAO_VENDA as string,",
+				"          CIDADE_ATUACAO as string,",
+				"          COD_SUP_1 as integer,",
+				"          NOME_COMP_1 as string,",
+				"          COD_SUP_2 as integer,",
+				"          NOME_COMP_2 as string,",
+				"          COD_SUP_3 as integer,",
+				"          NOME_COMP_3 as string,",
+				"          COD_SUP_4 as integer,",
+				"          NOME_COMP_4 as string,",
+				"          COD_SUP_5 as integer,",
+				"          NOME_COMP_5 as string,",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> DBdimVendedor",
+				"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -98,10 +131,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelecionarColunas",
-				"SelecionarColunas keyGenerate(output(SK_VENDEDOR as long),",
-				"     startAt: 1L,",
-				"     stepValue: 1L) ~> SurrogateKey",
-				"SurrogateKey select(mapColumn(",
+				"SelecionarColunas select(mapColumn(",
 				"          SK_VENDEDOR,",
 				"          COD_VENDEDOR,",
 				"          NOME_COMPLETO,",
@@ -121,8 +151,32 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> OrdenarColunas",
+				"CSVdimVendedor, DBdimVendedor exists(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     negate:true,",
+				"     broadcast: 'auto')~> NotExists",
 				"OrdenarColunas sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
+				"     input(",
+				"          SK_VENDEDOR as integer,",
+				"          COD_VENDEDOR as integer,",
+				"          NOME_COMPLETO as string,",
+				"          CARGO as string,",
+				"          REGIAO_VENDA as string,",
+				"          CIDADE_ATUACAO as string,",
+				"          COD_SUP_1 as integer,",
+				"          NOME_COMP_1 as string,",
+				"          COD_SUP_2 as integer,",
+				"          NOME_COMP_2 as string,",
+				"          COD_SUP_3 as integer,",
+				"          NOME_COMP_3 as string,",
+				"          COD_SUP_4 as integer,",
+				"          NOME_COMP_4 as string,",
+				"          COD_SUP_5 as integer,",
+				"          NOME_COMP_5 as string,",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
 				"     updateable:false,",
