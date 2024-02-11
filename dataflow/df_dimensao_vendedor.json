@@ -32,21 +32,27 @@
 						"referenceName": "ds_azure_sql_db_dim_vendedores",
 						"type": "DatasetReference"
 					},
-					"name": "DestinoDW"
+					"name": "InsereBD"
 				}
 			],
 			"transformations": [
 				{
-					"name": "LeftJoin"
+					"name": "DadosNovos"
 				},
 				{
-					"name": "SelecionarColunas"
+					"name": "LeftJoinEnderecos"
 				},
 				{
-					"name": "OrdenarColunas"
+					"name": "SelecionaColunas"
 				},
 				{
-					"name": "NotExists"
+					"name": "DadosAlterados"
+				},
+				{
+					"name": "ColunaDtFim"
+				},
+				{
+					"name": "alterRow"
 				}
 			],
 			"scriptLines": [
@@ -107,17 +113,19 @@
 				"     inferDriftedColumnTypes: true,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> DBdimVendedor",
+				"SelecionaColunas, DBdimVendedor exists(DBdimVendedor@COD_VENDEDOR != SelecionaColunas@COD_VENDEDOR || (DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (DBdimVendedor@CARGO != SelecionaColunas@CARGO || DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO || DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5)),",
+				"     negate:false,",
+				"     broadcast: 'auto')~> DadosNovos",
 				"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> LeftJoin",
-				"LeftJoin select(mapColumn(",
+				"     broadcast: 'auto')~> LeftJoinEnderecos",
+				"LeftJoinEnderecos select(mapColumn(",
 				"          COD_VENDEDOR,",
 				"          NOME_COMPLETO,",
 				"          CARGO,",
 				"          REGIAO_VENDA,",
-				"          CIDADE_ATUACAO = CIDADE,",
 				"          COD_SUP_1,",
 				"          NOME_COMP_1,",
 				"          COD_SUP_2,",
@@ -127,34 +135,17 @@
 				"          COD_SUP_4,",
 				"          NOME_COMP_4,",
 				"          COD_SUP_5,",
-				"          NOME_COMP_5",
+				"          NOME_COMP_5,",
+				"          CIDADE_ATUACAO = CIDADE",
 				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SelecionarColunas",
-				"SelecionarColunas select(mapColumn(",
-				"          SK_VENDEDOR,",
-				"          COD_VENDEDOR,",
-				"          NOME_COMPLETO,",
-				"          CARGO,",
-				"          REGIAO_VENDA,",
-				"          CIDADE_ATUACAO,",
-				"          COD_SUP_1,",
-				"          NOME_COMP_1,",
-				"          COD_SUP_2,",
-				"          NOME_COMP_2,",
-				"          COD_SUP_3,",
-				"          NOME_COMP_3,",
-				"          COD_SUP_4,",
-				"          NOME_COMP_4,",
-				"          COD_SUP_5,",
-				"          NOME_COMP_5",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> OrdenarColunas",
-				"CSVdimVendedor, DBdimVendedor exists(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
-				"     negate:true,",
-				"     broadcast: 'auto')~> NotExists",
-				"OrdenarColunas sink(allowSchemaDrift: true,",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+				"DBdimVendedor, SelecionaColunas exists(DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (DBdimVendedor@CARGO != SelecionaColunas@CARGO || DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO || DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5),",
+				"     negate:false,",
+				"     broadcast: 'auto')~> DadosAlterados",
+				"DadosAlterados derive(DT_FIM = fromUTC(currentUTC(), 'GMT-3')) ~> ColunaDtFim",
+				"ColunaDtFim alterRow(updateIf(1 == 1)) ~> alterRow",
+				"DadosNovos sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_VENDEDOR as integer,",
@@ -181,11 +172,27 @@
 				"     insertable:true,",
 				"     updateable:false,",
 				"     upsertable:false,",
-				"     recreate:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> DestinoDW"
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          COD_VENDEDOR,",
+				"          NOME_COMPLETO,",
+				"          CARGO,",
+				"          REGIAO_VENDA,",
+				"          CIDADE_ATUACAO,",
+				"          COD_SUP_1,",
+				"          NOME_COMP_1,",
+				"          COD_SUP_2,",
+				"          NOME_COMP_2,",
+				"          COD_SUP_3,",
+				"          NOME_COMP_3,",
+				"          COD_SUP_4,",
+				"          NOME_COMP_4,",
+				"          COD_SUP_5,",
+				"          NOME_COMP_5",
+				"     )) ~> InsereBD"
 			]
 		}
 	}
