@@ -33,6 +33,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "InsereBD"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_vendedores",
+						"type": "DatasetReference"
+					},
+					"name": "AlteraBD"
 				}
 			],
 			"transformations": [
@@ -52,7 +59,7 @@
 					"name": "ColunaDtFim"
 				},
 				{
-					"name": "alterRow"
+					"name": "Condicao"
 				}
 			],
 			"scriptLines": [
@@ -143,8 +150,9 @@
 				"DBdimVendedor, SelecionaColunas exists(DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (DBdimVendedor@CARGO != SelecionaColunas@CARGO || DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO || DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5),",
 				"     negate:false,",
 				"     broadcast: 'auto')~> DadosAlterados",
-				"DadosAlterados derive(DT_FIM = fromUTC(currentUTC(), 'GMT-3')) ~> ColunaDtFim",
-				"ColunaDtFim alterRow(updateIf(1 == 1)) ~> alterRow",
+				"DadosAlterados derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
+				"          ATIVO = 'N') ~> ColunaDtFim",
+				"ColunaDtFim alterRow(updateIf(1 == 1)) ~> Condicao",
 				"DadosNovos sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
@@ -192,7 +200,43 @@
 				"          NOME_COMP_4,",
 				"          COD_SUP_5,",
 				"          NOME_COMP_5",
-				"     )) ~> InsereBD"
+				"     )) ~> InsereBD",
+				"Condicao sink(allowSchemaDrift: false,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_VENDEDOR as integer,",
+				"          COD_VENDEDOR as integer,",
+				"          NOME_COMPLETO as string,",
+				"          CARGO as string,",
+				"          REGIAO_VENDA as string,",
+				"          CIDADE_ATUACAO as string,",
+				"          COD_SUP_1 as integer,",
+				"          NOME_COMP_1 as string,",
+				"          COD_SUP_2 as integer,",
+				"          NOME_COMP_2 as string,",
+				"          COD_SUP_3 as integer,",
+				"          NOME_COMP_3 as string,",
+				"          COD_SUP_4 as integer,",
+				"          NOME_COMP_4 as string,",
+				"          COD_SUP_5 as integer,",
+				"          NOME_COMP_5 as string,",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['SK_VENDEDOR'],",
+				"     format: 'table',",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SK_VENDEDOR,",
+				"          ATIVO,",
+				"          DT_FIM",
+				"     )) ~> AlteraBD"
 			]
 		}
 	}
