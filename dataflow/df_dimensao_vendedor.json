@@ -232,7 +232,7 @@
 				"          COD_SUP_5,",
 				"          NOME_COMP_5",
 				"     )) ~> InsereBD2",
-				"Condicao sink(allowSchemaDrift: false,",
+				"Condicao sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_VENDEDOR as integer,",
