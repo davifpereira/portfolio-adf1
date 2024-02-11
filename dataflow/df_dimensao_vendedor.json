@@ -47,12 +47,6 @@
 					"name": "DadosNovos"
 				},
 				{
-					"name": "LeftJoinEnderecos"
-				},
-				{
-					"name": "SelecionaColunas"
-				},
-				{
 					"name": "DadosAlterados"
 				},
 				{
@@ -60,6 +54,9 @@
 				},
 				{
 					"name": "Condicao"
+				},
+				{
+					"name": "LeftJoinEnderecos"
 				}
 			],
 			"scriptLines": [
@@ -120,40 +117,31 @@
 				"     inferDriftedColumnTypes: true,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> DBdimVendedor",
-				"SelecionaColunas, DBdimVendedor exists(DBdimVendedor@COD_VENDEDOR != SelecionaColunas@COD_VENDEDOR || (DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (DBdimVendedor@CARGO != SelecionaColunas@CARGO || DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO || DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5)),",
+				"CSVdimVendedor, DBdimVendedor exists(DBdimVendedor@COD_VENDEDOR != CSVdimVendedor@COD_VENDEDOR || (\r",
+				"    DBdimVendedor@COD_VENDEDOR == CSVdimVendedor@COD_VENDEDOR && (\r",
+				"        DBdimVendedor@CARGO != CSVdimVendedor@CARGO || \r",
+				"        DBdimVendedor@REGIAO_VENDA != CSVdimVendedor@REGIAO_VENDA || \r",
+				"        DBdimVendedor@COD_SUP_1 != CSVdimVendedor@COD_SUP_1 || \r",
+				"        DBdimVendedor@COD_SUP_2 != CSVdimVendedor@COD_SUP_2 || \r",
+				"        DBdimVendedor@COD_SUP_3 != CSVdimVendedor@COD_SUP_3 || \r",
+				"        DBdimVendedor@COD_SUP_4 != CSVdimVendedor@COD_SUP_4 || \r",
+				"        DBdimVendedor@COD_SUP_5 != CSVdimVendedor@COD_SUP_5\r",
+				"    )\r",
+				"),",
 				"     negate:false,",
 				"     broadcast: 'auto')~> DadosNovos",
-				"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
-				"     joinType:'left',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> LeftJoinEnderecos",
-				"LeftJoinEnderecos select(mapColumn(",
-				"          COD_VENDEDOR,",
-				"          NOME_COMPLETO,",
-				"          CARGO,",
-				"          REGIAO_VENDA,",
-				"          COD_SUP_1,",
-				"          NOME_COMP_1,",
-				"          COD_SUP_2,",
-				"          NOME_COMP_2,",
-				"          COD_SUP_3,",
-				"          NOME_COMP_3,",
-				"          COD_SUP_4,",
-				"          NOME_COMP_4,",
-				"          COD_SUP_5,",
-				"          NOME_COMP_5,",
-				"          CIDADE_ATUACAO = CIDADE",
-				"     ),",
-				"     skipDuplicateMapInputs: false,",
-				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
-				"DBdimVendedor, SelecionaColunas exists(DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (DBdimVendedor@CARGO != SelecionaColunas@CARGO || DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO || DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5),",
+				"DBdimVendedor, CSVdimVendedor exists(DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (DBdimVendedor@CARGO != SelecionaColunas@CARGO || DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO || DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5),",
 				"     negate:false,",
 				"     broadcast: 'auto')~> DadosAlterados",
 				"DadosAlterados derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
 				"          ATIVO = 'N') ~> ColunaDtFim",
 				"ColunaDtFim alterRow(updateIf(1 == 1)) ~> Condicao",
-				"DadosNovos sink(allowSchemaDrift: false,",
+				"DadosNovos, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinEnderecos",
+				"LeftJoinEnderecos sink(allowSchemaDrift: false,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_VENDEDOR as integer,",
@@ -189,7 +177,7 @@
 				"          NOME_COMPLETO,",
 				"          CARGO,",
 				"          REGIAO_VENDA,",
-				"          CIDADE_ATUACAO,",
+				"          CIDADE_ATUACAO = CIDADE,",
 				"          COD_SUP_1,",
 				"          NOME_COMP_1,",
 				"          COD_SUP_2,",
