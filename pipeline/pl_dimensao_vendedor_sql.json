@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "insert_dw",
+				"name": "insert_update_dw",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
