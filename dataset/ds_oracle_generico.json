@@ -7,7 +7,8 @@
 		},
 		"parameters": {
 			"owner": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "CONSULTORIA_BI"
 			},
 			"view": {
 				"type": "string"
@@ -21,7 +22,7 @@
 		"schema": [],
 		"typeProperties": {
 			"schema": {
-				"value": "CONSULTORIA_BI",
+				"value": "@dataset().owner",
 				"type": "Expression"
 			},
 			"table": {
