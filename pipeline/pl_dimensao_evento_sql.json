@@ -23,20 +23,15 @@
 				"userProperties": [],
 				"typeProperties": {
 					"source": {
-						"type": "DelimitedTextSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": false,
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "DelimitedTextReadSettings"
-						}
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_evento\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_inicio_carga(5)",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
 					},
 					"sink": {
 						"type": "AzureSqlSink",
 						"preCopyScript": {
-							"value": "@concat('DELETE FROM ', variables('schema'), '.', variables('nome_tabela'))",
+							"value": "@concat('TRUNCATE TABLE ', variables('schema'), '.', variables('nome_tabela'))",
 							"type": "Expression"
 						},
 						"writeBehavior": "insert",
@@ -93,25 +88,11 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "ds_data_lake_csv_generico",
+						"referenceName": "ds_oracle_generico",
 						"type": "DatasetReference",
 						"parameters": {
-							"container": {
-								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
-								"type": "Expression"
-							},
-							"nome_arquivo": {
-								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', ''), '.csv')",
-								"type": "Expression"
-							},
-							"separador": {
-								"value": "@pipeline().globalParameters.separador_padrao",
-								"type": "Expression"
-							},
-							"encoding": {
-								"value": "@pipeline().globalParameters.encoding_padrao",
-								"type": "Expression"
-							}
+							"owner": "CONSULTORIA_BI",
+							"view": "*"
 						}
 					}
 				],
@@ -143,7 +124,10 @@
 				"userProperties": [],
 				"typeProperties": {
 					"variableName": "nome_tabela",
-					"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')"
+					"value": {
+						"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
+						"type": "Expression"
+					}
 				}
 			}
 		],
