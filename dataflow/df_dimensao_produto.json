@@ -6,10 +6,11 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "ds_data_lake_bd_dim_vendedor",
+						"referenceName": "ds_data_lake_bd_dim_produto",
 						"type": "DatasetReference"
 					},
-					"name": "CSVdimVendedor"
+					"name": "CSVdimProduto",
+					"description": "Import data from ds_data_lake_bd_dim_produto"
 				},
 				{
 					"dataset": {
@@ -73,27 +74,10 @@
 				}
 			],
 			"scriptLines": [
-				"source(output(",
-				"          COD_VENDEDOR as integer,",
-				"          NOME_COMPLETO as string,",
-				"          CARGO as string,",
-				"          REGIAO_VENDA as string,",
-				"          CIDADE_ATUACAO as integer,",
-				"          COD_SUP_1 as integer,",
-				"          NOME_COMP_1 as string,",
-				"          COD_SUP_2 as integer,",
-				"          NOME_COMP_2 as string,",
-				"          COD_SUP_3 as integer,",
-				"          NOME_COMP_3 as string,",
-				"          COD_SUP_4 as integer,",
-				"          NOME_COMP_4 as string,",
-				"          COD_SUP_5 as integer,",
-				"          NOME_COMP_5 as string",
-				"     ),",
-				"     allowSchemaDrift: true,",
+				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> CSVdimVendedor",
+				"     ignoreNoFilesFound: false) ~> CSVdimProduto",
 				"source(output(",
 				"          COD_CIDADE as integer,",
 				"          CIDADE as string,",
@@ -130,7 +114,7 @@
 				"     inferDriftedColumnTypes: true,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> DBdimVendedor",
-				"DBdimVendedor, CSVdimVendedor exists(DBdimVendedor@COD_VENDEDOR == CSVdimVendedor@COD_VENDEDOR && (\r",
+				"DBdimVendedor, CSVdimProduto exists(DBdimVendedor@COD_VENDEDOR == CSVdimVendedor@COD_VENDEDOR && (\r",
 				"    DBdimVendedor@CARGO != CSVdimVendedor@CARGO || \r",
 				"    DBdimVendedor@REGIAO_VENDA != CSVdimVendedor@REGIAO_VENDA || \r",
 				"    DBdimVendedor@COD_SUP_1 != CSVdimVendedor@COD_SUP_1 || \r",
@@ -144,7 +128,7 @@
 				"DadosAlterados derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
 				"          ATIVO = 'N') ~> ColunaDtFim",
 				"ColunaDtFim alterRow(updateIf(1==1)) ~> Condicao",
-				"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+				"CSVdimProduto, CSVenderecos join(ERROR_FUNCTION('') == COD_CIDADE,",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
