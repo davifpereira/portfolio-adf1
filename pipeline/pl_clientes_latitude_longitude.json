@@ -5,6 +5,8 @@
 			{
 				"name": "filtro_arquivo_csv",
 				"type": "Filter",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"userProperties": []
 			},
@@ -25,8 +27,11 @@
 						"referenceName": "ds_data_lake_csv_generico",
 						"type": "DatasetReference",
 						"parameters": {
-							"container": "raw-files",
-							"nome_arquivo": "*",
+							"container": {
+								"value": "@variables('container')",
+								"type": "Expression"
+							},
+							"nome_arquivo": "*.csv",
 							"separador": "*",
 							"encoding": "*"
 						}
