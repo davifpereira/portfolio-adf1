@@ -3,12 +3,27 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "filtro_arquivo_csv",
+				"name": "filtro_arquivos",
 				"type": "Filter",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
-				"userProperties": []
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos_pasta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos_pasta').output",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains('cliente','latitude')",
+						"type": "Expression"
+					}
+				}
 			},
 			{
 				"name": "nome_arquivos_pasta",
@@ -31,7 +46,7 @@
 								"value": "@variables('container')",
 								"type": "Expression"
 							},
-							"nome_arquivo": "*",
+							"nome_arquivo": "*.csv",
 							"separador": "*",
 							"encoding": "*"
 						}
