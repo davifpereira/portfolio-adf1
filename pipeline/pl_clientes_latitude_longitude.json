@@ -31,7 +31,10 @@
 								"value": "@variables('container')",
 								"type": "Expression"
 							},
-							"nome_arquivo": "*.csv",
+							"nome_arquivo": {
+								"value": "@concat('*', '.csv')",
+								"type": "Expression"
+							},
 							"separador": "*",
 							"encoding": "*"
 						}
