@@ -48,7 +48,7 @@
 								"value": "@variables('container')",
 								"type": "Expression"
 							},
-							"nome_arquivo": "*",
+							"nome_arquivo": "*\".csv\"",
 							"separador": "*",
 							"encoding": "*"
 						}
