@@ -5,6 +5,8 @@
 			{
 				"name": "filtro_arquivos",
 				"type": "Filter",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "nome_arquivos_pasta",
@@ -46,7 +48,7 @@
 								"value": "@variables('container')",
 								"type": "Expression"
 							},
-							"nome_arquivo": "*.csv",
+							"nome_arquivo": "*",
 							"separador": "*",
 							"encoding": "*"
 						}
