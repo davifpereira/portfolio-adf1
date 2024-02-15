@@ -1,0 +1,56 @@
+{
+	"name": "pl_clientes_latitude_longitude",
+	"properties": {
+		"activities": [
+			{
+				"name": "filtro_arquivo_csv",
+				"type": "Filter",
+				"dependsOn": [],
+				"userProperties": []
+			},
+			{
+				"name": "nome_arquivos_pasta",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": "raw-files",
+							"nome_arquivo": "*",
+							"separador": "*",
+							"encoding": "*"
+						}
+					},
+					"fieldList": [],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			}
+		],
+		"variables": {
+			"container": {
+				"type": "String",
+				"defaultValue": "raw-files"
+			}
+		},
+		"folder": {
+			"name": "Data Lake"
+		},
+		"annotations": []
+	}
+}
