@@ -40,8 +40,6 @@
 			{
 				"name": "ForEach",
 				"type": "ForEach",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "Filter1",
@@ -59,33 +57,26 @@
 					"isSequential": false,
 					"activities": [
 						{
-							"name": "Filter",
-							"type": "Filter",
-							"state": "Inactive",
-							"onInactiveMarkAs": "Succeeded",
-							"dependsOn": [],
-							"userProperties": [],
-							"typeProperties": {
-								"items": {
-									"value": "@item()",
-									"type": "Expression"
-								},
-								"condition": {
-									"value": "@contains(item().value, 'latitude*longitude')",
-									"type": "Expression"
-								}
-							}
-						},
-						{
 							"name": "If Condition",
 							"type": "IfCondition",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@contains(item().value, 'latitude*longitude') ",
+									"value": "@contains(item().value, 'latitude') ",
 									"type": "Expression"
-								}
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Wait1",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								]
 							}
 						}
 					]
