@@ -3,29 +3,6 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "filtro_arquivos",
-				"type": "Filter",
-				"dependsOn": [
-					{
-						"activity": "nome_arquivos_pasta",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('nome_arquivos_pasta').output.childItems.name",
-						"type": "Expression"
-					},
-					"condition": {
-						"value": "@contains(item(),'.CSV')",
-						"type": "Expression"
-					}
-				}
-			},
-			{
 				"name": "nome_arquivos_pasta",
 				"type": "GetMetadata",
 				"dependsOn": [],
@@ -51,13 +28,89 @@
 						}
 					},
 					"fieldList": [
-						"itemName",
 						"childItems"
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
 						"recursive": true,
 						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "ForEach",
+				"type": "ForEach",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Filter1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Filter1').output",
+						"type": "Expression"
+					},
+					"isSequential": false,
+					"activities": [
+						{
+							"name": "Filter",
+							"type": "Filter",
+							"state": "Inactive",
+							"onInactiveMarkAs": "Succeeded",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"items": {
+									"value": "@item()",
+									"type": "Expression"
+								},
+								"condition": {
+									"value": "@contains(item().value, 'latitude*longitude')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "If Condition",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@contains(item().value, 'latitude*longitude') ",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "Filter1",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos_pasta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos_pasta').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item().name, '.CSV')",
+						"type": "Expression"
 					}
 				}
 			}
