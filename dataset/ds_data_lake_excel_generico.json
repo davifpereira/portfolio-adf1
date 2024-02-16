@@ -11,6 +11,9 @@
 			},
 			"nome_aba": {
 				"type": "string"
+			},
+			"container": {
+				"type": "string"
 			}
 		},
 		"folder": {
@@ -27,6 +30,10 @@
 				"type": "AzureBlobFSLocation",
 				"fileName": {
 					"value": "@dataset().nome_arquivo",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().container",
 					"type": "Expression"
 				}
 			},
