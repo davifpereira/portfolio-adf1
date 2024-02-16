@@ -41,16 +41,15 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataset": {
-						"referenceName": "ds_data_lake_csv_generico",
+						"referenceName": "ds_data_lake_excel_generico",
 						"type": "DatasetReference",
 						"parameters": {
+							"nome_arquivo": "*",
+							"nome_aba": "*",
 							"container": {
 								"value": "@variables('container')",
 								"type": "Expression"
-							},
-							"nome_arquivo": "*.CSV",
-							"separador": "*",
-							"encoding": "*"
+							}
 						}
 					},
 					"fieldList": [
@@ -59,10 +58,8 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
-					},
-					"formatSettings": {
-						"type": "DelimitedTextReadSettings"
 					}
 				}
 			}
