@@ -54,7 +54,7 @@
 						"value": "@activity('filtro_arqs_csv').output\n\n",
 						"type": "Expression"
 					},
-					"isSequential": false,
+					"isSequential": true,
 					"activities": [
 						{
 							"name": "separa_latitude_longitude",
@@ -66,6 +66,17 @@
 									"value": "@contains(item().value, 'Clientes X Latitude e Longitude') ",
 									"type": "Expression"
 								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait1",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
 								"ifTrueActivities": [
 									{
 										"name": "ano_mes",
@@ -79,7 +90,7 @@
 										"typeProperties": {
 											"variableName": "ano_mes",
 											"value": {
-												"value": "@activity('filtro_arqs_csv').output.value",
+												"value": "@item().Name",
 												"type": "Expression"
 											}
 										}
