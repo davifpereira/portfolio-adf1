@@ -14,7 +14,7 @@
 				"typeProperties": {
 					"variableName": "teste",
 					"value": {
-						"value": "1",
+						"value": "@add(indexOf(pipeline().parameters.texto, '('), 1)",
 						"type": "Expression"
 					}
 				}
@@ -29,7 +29,7 @@
 		"variables": {
 			"teste": {
 				"type": "String",
-				"defaultValue": "0"
+				"defaultValue": "\"0\""
 			}
 		},
 		"annotations": []
