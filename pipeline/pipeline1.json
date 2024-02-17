@@ -1,0 +1,37 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Set variable1",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "teste",
+					"value": {
+						"value": "1",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"parameters": {
+			"texto": {
+				"type": "string",
+				"defaultValue": "Clientes X Latitude e Longitude (2020-01)"
+			}
+		},
+		"variables": {
+			"teste": {
+				"type": "String",
+				"defaultValue": "0"
+			}
+		},
+		"annotations": []
+	}
+}
