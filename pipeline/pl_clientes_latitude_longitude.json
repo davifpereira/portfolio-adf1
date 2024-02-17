@@ -38,11 +38,11 @@
 				}
 			},
 			{
-				"name": "ForEach",
+				"name": "para_cada_csv",
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Filter1",
+						"activity": "filtro_arqs_csv",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -57,23 +57,28 @@
 					"isSequential": false,
 					"activities": [
 						{
-							"name": "If Condition",
+							"name": "separa_latitude_longitude",
 							"type": "IfCondition",
 							"dependsOn": [],
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@contains(item().value, 'latitude') ",
+									"value": "@contains(item().value, 'Clientes X Latitude e Longitude') ",
 									"type": "Expression"
 								},
 								"ifTrueActivities": [
 									{
-										"name": "Wait1",
-										"type": "Wait",
+										"name": "ano_mes",
+										"type": "SetVariable",
 										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
 										"userProperties": [],
 										"typeProperties": {
-											"waitTimeInSeconds": 1
+											"variableName": "ano_mes",
+											"value": ""
 										}
 									}
 								]
@@ -83,7 +88,7 @@
 				}
 			},
 			{
-				"name": "Filter1",
+				"name": "filtro_arqs_csv",
 				"type": "Filter",
 				"dependsOn": [
 					{
@@ -110,6 +115,9 @@
 			"container": {
 				"type": "String",
 				"defaultValue": "raw-files"
+			},
+			"ano_mes": {
+				"type": "String"
 			}
 		},
 		"folder": {
