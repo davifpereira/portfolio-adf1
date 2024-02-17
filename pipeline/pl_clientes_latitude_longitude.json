@@ -51,7 +51,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('filtro_arqs_csv').output\n\n",
+						"value": "@activity('filtro_arqs_csv').output.Value\n\n",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -63,7 +63,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@contains(item().value, 'Clientes X Latitude e Longitude') ",
+									"value": "@contains(item().name, 'Clientes X Latitude e Longitude') ",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
@@ -88,9 +88,29 @@
 										},
 										"userProperties": [],
 										"typeProperties": {
-											"variableName": "ano_mes",
+											"variableName": "ano_mes_item",
 											"value": {
-												"value": "@item().Name",
+												"value": "@substring(item().name, add(indexOf(item().name, '('), 1), sub(indexOf(item().name, ')'), add(indexOf(item().name, '('), 1)))\n\n",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "ano_mes_array",
+										"type": "AppendVariable",
+										"dependsOn": [
+											{
+												"activity": "ano_mes",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "ano_mes_array",
+											"value": {
+												"value": "@variables('ano_mes_item')",
 												"type": "Expression"
 											}
 										}
@@ -130,8 +150,11 @@
 				"type": "String",
 				"defaultValue": "raw-files"
 			},
-			"ano_mes": {
+			"ano_mes_item": {
 				"type": "String"
+			},
+			"ano_mes_array": {
+				"type": "Array"
 			}
 		},
 		"folder": {
