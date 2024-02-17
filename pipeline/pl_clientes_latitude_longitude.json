@@ -51,7 +51,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Filter1').output",
+						"value": "@activity('filtro_arqs_csv').output\n\n",
 						"type": "Expression"
 					},
 					"isSequential": false,
@@ -78,7 +78,10 @@
 										"userProperties": [],
 										"typeProperties": {
 											"variableName": "ano_mes",
-											"value": ""
+											"value": {
+												"value": "@activity('filtro_arqs_csv').output.value",
+												"type": "Expression"
+											}
 										}
 									}
 								]
