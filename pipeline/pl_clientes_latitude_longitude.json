@@ -125,8 +125,14 @@
 														"value": "@item().name",
 														"type": "Expression"
 													},
-													"separador": "*",
-													"encoding": "*"
+													"separador": {
+														"value": "@pipeline().parameters.separador_outros_csv",
+														"type": "Expression"
+													},
+													"encoding": {
+														"value": "@pipeline().parameters.encoding_outros_csv",
+														"type": "Expression"
+													}
 												}
 											}
 										],
@@ -222,8 +228,42 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "ano_mes_filtro",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "para_cada_csv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ano_mes_filtro",
+					"value": {
+						"value": "@string(max(variables('ano_mes_array')))",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"parameters": {
+			"separador_outros_csv": {
+				"type": "string",
+				"defaultValue": ","
+			},
+			"encoding_outros_csv": {
+				"type": "string",
+				"defaultValue": "UTF-8"
+			}
+		},
 		"variables": {
 			"container": {
 				"type": "String",
@@ -234,6 +274,9 @@
 			},
 			"ano_mes_array": {
 				"type": "Array"
+			},
+			"ano_mes_filtro": {
+				"type": "String"
 			}
 		},
 		"folder": {
