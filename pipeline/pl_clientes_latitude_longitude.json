@@ -195,7 +195,7 @@
 										"typeProperties": {
 											"variableName": "ano_mes_array",
 											"value": {
-												"value": "@variables('ano_mes_item')",
+												"value": "@int(replace(variables('ano_mes_item'), '-', ''))\n\n",
 												"type": "Expression"
 											}
 										}
@@ -248,7 +248,7 @@
 				"typeProperties": {
 					"variableName": "ano_mes_filtro",
 					"value": {
-						"value": "@string(max(variables('ano_mes_array')))",
+						"value": "@string(max(int(replace(variables('ano_mes_array'),'-', ''))))\n\n",
 						"type": "Expression"
 					}
 				}
