@@ -1,5 +1,5 @@
 {
-	"name": "pl_clientes_latitude_longitude",
+	"name": "pl_arqs_csv_excel_dl",
 	"properties": {
 		"activities": [
 			{
@@ -40,6 +40,8 @@
 			{
 				"name": "para_cada_csv",
 				"type": "ForEach",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "filtro_arqs_csv",
@@ -63,7 +65,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"expression": {
-									"value": "@contains(item().name, 'Clientes X Latitude e Longitude') ",
+									"value": "@contains(item().name, pipeline().parameters.base_arq_latitude_long)",
 									"type": "Expression"
 								},
 								"ifFalseActivities": [
@@ -209,6 +211,8 @@
 			{
 				"name": "filtro_arqs_csv",
 				"type": "Filter",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "nome_arquivos_pasta",
@@ -232,6 +236,8 @@
 			{
 				"name": "ano_mes_filtro",
 				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "para_cada_csv",
@@ -258,11 +264,18 @@
 				"type": "Copy",
 				"state": "Inactive",
 				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "ano_mes_filtro",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
 					"secureOutput": false,
 					"secureInput": false
 				},
@@ -293,6 +306,44 @@
 					"enableStaging": false,
 					"translator": {
 						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LATITUDE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LATITUDE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LONGITUDE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LONGITUDE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
 						"typeConversion": true,
 						"typeConversionSettings": {
 							"allowDataTruncation": true,
@@ -310,7 +361,7 @@
 								"type": "Expression"
 							},
 							"nome_arquivo": {
-								"value": "@variables('ano_mes_filtro')",
+								"value": "@concat(pipeline().parameters.base_arq_latitude_long, ' (', variables('ano_mes_filtro'), ').CSV')",
 								"type": "Expression"
 							},
 							"separador": {
@@ -332,23 +383,45 @@
 							"container": {
 								"value": "@pipeline().globalParameters.dl_arquivos_csv",
 								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_latitude_long, '.CSV')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
 							}
 						}
 					}
 				]
 			},
 			{
-				"name": "filtra_arq_latitude_longitude",
+				"name": "filtro_arqs_risco_credito",
 				"type": "Filter",
 				"dependsOn": [
 					{
-						"activity": "ano_mes_filtro",
+						"activity": "nome_arquivos_pasta",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					}
 				],
-				"userProperties": []
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos_pasta').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item().name, pipeline().parameters.base_arq_risco_credito)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -367,6 +440,10 @@
 			"base_arq_latitude_long": {
 				"type": "string",
 				"defaultValue": "Clientes X Latitude e Longitude"
+			},
+			"base_arq_risco_credito": {
+				"type": "string",
+				"defaultValue": "Classificação dos Clientes - Risco de Crédito"
 			}
 		},
 		"variables": {
