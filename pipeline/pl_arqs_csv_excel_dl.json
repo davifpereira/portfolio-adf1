@@ -548,6 +548,56 @@
 					"enableStaging": false,
 					"translator": {
 						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOME_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NOME_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RISCO_CREDITO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RISCO_CREDITO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SIGLA",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SIGLA",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
 						"typeConversion": true,
 						"typeConversionSettings": {
 							"allowDataTruncation": true,
@@ -578,7 +628,25 @@
 				"outputs": [
 					{
 						"referenceName": "ds_data_lake_csv_generico",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_arquivos_csv",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_risco_credito, '.CSV')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
