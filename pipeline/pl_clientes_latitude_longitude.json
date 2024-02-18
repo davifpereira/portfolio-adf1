@@ -22,7 +22,7 @@
 							"nome_arquivo": "*",
 							"nome_aba": "*",
 							"container": {
-								"value": "@variables('container')",
+								"value": "@pipeline().parameters.container",
 								"type": "Expression"
 							}
 						}
@@ -118,7 +118,7 @@
 												"type": "DatasetReference",
 												"parameters": {
 													"container": {
-														"value": "@variables('container')",
+														"value": "@pipeline().parameters.container",
 														"type": "Expression"
 													},
 													"nome_arquivo": {
@@ -256,14 +256,9 @@
 			{
 				"name": "copia_arq_latitude_longitude",
 				"type": "Copy",
-				"dependsOn": [
-					{
-						"activity": "ano_mes_filtro",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -284,7 +279,26 @@
 							"type": "DelimitedTextReadSettings"
 						}
 					},
-					"enableStaging": false
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
 				},
 				"inputs": [
 					{
@@ -292,7 +306,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"container": {
-								"value": "@pipeline().globalParameters.dl_arquivos_csv",
+								"value": "@pipeline().parameters.container",
 								"type": "Expression"
 							},
 							"nome_arquivo": {
@@ -309,7 +323,32 @@
 							}
 						}
 					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_arquivos_csv",
+								"type": "Expression"
+							}
+						}
+					}
 				]
+			},
+			{
+				"name": "filtra_arq_latitude_longitude",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "ano_mes_filtro",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": []
 			}
 		],
 		"parameters": {
@@ -320,12 +359,19 @@
 			"encoding_outros_csv": {
 				"type": "string",
 				"defaultValue": "UTF-8"
+			},
+			"container": {
+				"type": "string",
+				"defaultValue": "raw-files"
+			},
+			"base_arq_latitude_long": {
+				"type": "string",
+				"defaultValue": "Clientes X Latitude e Longitude"
 			}
 		},
 		"variables": {
 			"container": {
-				"type": "String",
-				"defaultValue": "raw-files"
+				"type": "String"
 			},
 			"ano_mes_item": {
 				"type": "String"
