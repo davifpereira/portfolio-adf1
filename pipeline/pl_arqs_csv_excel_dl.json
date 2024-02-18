@@ -234,7 +234,7 @@
 				}
 			},
 			{
-				"name": "ano_mes_filtro",
+				"name": "ano_mes_filtro_csv",
 				"type": "SetVariable",
 				"state": "Inactive",
 				"onInactiveMarkAs": "Succeeded",
@@ -266,7 +266,7 @@
 				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
-						"activity": "ano_mes_filtro",
+						"activity": "ano_mes_filtro_csv",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -285,7 +285,7 @@
 						"type": "DelimitedTextSource",
 						"storeSettings": {
 							"type": "AzureBlobFSReadSettings",
-							"recursive": true,
+							"recursive": false,
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -481,6 +481,106 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "ano_mes_filtro_excel",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "para_cada_arq_risco_credito",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ano_mes_filtro_excel",
+					"value": {
+						"value": "@concat(substring(string(max(variables('ano_mes_array_excel'))), 0, 4), '-', substring(string(max(variables('ano_mes_array_excel'))), 4, 2))\n\n\n\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "copia_arq_risco_credito",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ano_mes_filtro_excel",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_data_lake_excel_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_risco_credito, ' (', variables('ano_mes_filtro_excel'), ').xlsx')",
+								"type": "Expression"
+							},
+							"nome_aba": {
+								"value": "@pipeline().parameters.aba_risco_credito",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference"
+					}
+				]
 			}
 		],
 		"parameters": {
@@ -503,6 +603,10 @@
 			"base_arq_risco_credito": {
 				"type": "string",
 				"defaultValue": "Classificação dos Clientes - Risco de Crédito"
+			},
+			"aba_risco_credito": {
+				"type": "string",
+				"defaultValue": "Dados"
 			}
 		},
 		"variables": {
