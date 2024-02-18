@@ -40,8 +40,6 @@
 			{
 				"name": "para_cada_csv",
 				"type": "ForEach",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "filtro_arqs_csv",
@@ -211,8 +209,6 @@
 			{
 				"name": "filtro_arqs_csv",
 				"type": "Filter",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "nome_arquivos_pasta",
@@ -236,8 +232,6 @@
 			{
 				"name": "ano_mes_filtro_csv",
 				"type": "SetVariable",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "para_cada_csv",
@@ -262,8 +256,6 @@
 			{
 				"name": "copia_arq_latitude_longitude",
 				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "ano_mes_filtro_csv",
