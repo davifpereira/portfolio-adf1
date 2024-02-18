@@ -32,6 +32,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "CSVriscoCredito"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_latitude_long_clientes",
+						"type": "DatasetReference"
+					},
+					"name": "CSVlatitudeLongitude"
 				}
 			],
 			"sinks": [
@@ -142,6 +149,10 @@
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     ignoreNoFilesFound: false) ~> CSVriscoCredito",
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVlatitudeLongitude",
 				"DBdimVendedor, CSVdimClientes exists(DBdimVendedor@COD_VENDEDOR == CSVdimVendedor@COD_VENDEDOR && (\r",
 				"    DBdimVendedor@CARGO != CSVdimVendedor@CARGO || \r",
 				"    DBdimVendedor@REGIAO_VENDA != CSVdimVendedor@REGIAO_VENDA || \r",
