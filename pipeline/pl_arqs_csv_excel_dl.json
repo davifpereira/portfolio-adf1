@@ -166,7 +166,7 @@
 								],
 								"ifTrueActivities": [
 									{
-										"name": "ano_mes_item",
+										"name": "ano_mes_item_csv",
 										"type": "SetVariable",
 										"dependsOn": [],
 										"policy": {
@@ -183,11 +183,11 @@
 										}
 									},
 									{
-										"name": "ano_mes_array",
+										"name": "ano_mes_array_csv",
 										"type": "AppendVariable",
 										"dependsOn": [
 											{
-												"activity": "ano_mes_item",
+												"activity": "ano_mes_item_csv",
 												"dependencyConditions": [
 													"Succeeded"
 												]
