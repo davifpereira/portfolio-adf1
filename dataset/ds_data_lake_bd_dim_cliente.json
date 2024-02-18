@@ -13,7 +13,7 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "dimensao_cliente.CSV",
+				"fileName": "dimensao_cliente.csv",
 				"folderPath": "tabelas-bd"
 			},
 			"columnDelimiter": "|",
