@@ -14,7 +14,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "Clientes X Latitude e Longitude.CSV",
-				"folderPath": "arquivos-csv"
+				"fileSystem": "arquivos-csv"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
