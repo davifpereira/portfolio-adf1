@@ -13,8 +13,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "interm_enderecos.CSV",
-				"folderPath": "tabelas-bd"
+				"fileName": "interm_enderecos.csv",
+				"fileSystem": "tabelas-bd"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
