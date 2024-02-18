@@ -1,5 +1,5 @@
 {
-	"name": "ds_data_lake_bd_dim_vendedor",
+	"name": "ds_data_lake_risco_credito",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_datalake",
@@ -13,8 +13,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "dimensao_vendedor.CSV",
-				"folderPath": "tabelas-bd"
+				"fileName": "Classificação dos Clientes - Risco de Crédito.CSV",
+				"folderPath": "arquivos-csv"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
