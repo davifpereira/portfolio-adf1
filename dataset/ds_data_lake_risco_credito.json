@@ -14,7 +14,7 @@
 			"location": {
 				"type": "AzureBlobFSLocation",
 				"fileName": "Classificação dos Clientes - Risco de Crédito.CSV",
-				"folderPath": "arquivos-csv"
+				"fileSystem": "arquivos-csv"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
