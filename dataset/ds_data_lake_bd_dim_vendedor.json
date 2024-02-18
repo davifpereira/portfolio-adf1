@@ -13,8 +13,8 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "dimensao_vendedor.CSV",
-				"folderPath": "tabelas-bd"
+				"fileName": "dimensao_vendedor.csv",
+				"fileSystem": "tabelas-bd"
 			},
 			"columnDelimiter": "|",
 			"escapeChar": "\\",
