@@ -85,6 +85,12 @@
 				},
 				{
 					"name": "DadosNovos"
+				},
+				{
+					"name": "LeftJoinLatitudeLongitude"
+				},
+				{
+					"name": "LeftJoinRiscoCredito"
 				}
 			],
 			"scriptLines": [
@@ -184,7 +190,7 @@
 				"),",
 				"     negate:false,",
 				"     broadcast: 'auto')~> DadosAtualizados",
-				"LeftJoinEnderecos select(mapColumn(",
+				"LeftJoinRiscoCredito select(mapColumn(",
 				"          COD_VENDEDOR,",
 				"          NOME_COMPLETO,",
 				"          CARGO,",
@@ -206,6 +212,16 @@
 				"SelecionaColunas, DBdimVendedor exists(SelecionaColunas@COD_VENDEDOR == DBdimVendedor@COD_VENDEDOR,",
 				"     negate:true,",
 				"     broadcast: 'auto')~> DadosNovos",
+				"LeftJoinEnderecos join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinLatitudeLongitude",
+				"LeftJoinLatitudeLongitude join(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinRiscoCredito",
 				"DadosAtualizados sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
