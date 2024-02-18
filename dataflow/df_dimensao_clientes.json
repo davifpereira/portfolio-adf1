@@ -27,6 +27,10 @@
 					"name": "DBdimVendedor"
 				},
 				{
+					"dataset": {
+						"referenceName": "ds_data_lake_risco_credito",
+						"type": "DatasetReference"
+					},
 					"name": "CSVriscoCredito"
 				}
 			],
@@ -136,7 +140,8 @@
 				"     format: 'table') ~> DBdimVendedor",
 				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     inferDriftedColumnTypes: true) ~> CSVriscoCredito",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVriscoCredito",
 				"DBdimVendedor, CSVdimClientes exists(DBdimVendedor@COD_VENDEDOR == CSVdimVendedor@COD_VENDEDOR && (\r",
 				"    DBdimVendedor@CARGO != CSVdimVendedor@CARGO || \r",
 				"    DBdimVendedor@REGIAO_VENDA != CSVdimVendedor@REGIAO_VENDA || \r",
