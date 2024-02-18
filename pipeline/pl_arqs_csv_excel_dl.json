@@ -211,7 +211,7 @@
 				"type": "Filter",
 				"dependsOn": [
 					{
-						"activity": "nome_arquivos_pasta",
+						"activity": "espera",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -641,6 +641,22 @@
 						}
 					}
 				]
+			},
+			{
+				"name": "espera",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos_pasta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 120
+				}
 			}
 		],
 		"parameters": {
