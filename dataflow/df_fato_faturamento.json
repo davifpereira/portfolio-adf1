@@ -5,14 +5,33 @@
 		"typeProperties": {
 			"sources": [
 				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_fato_faturamento",
+						"type": "DatasetReference"
+					},
 					"name": "CSVfatoFaturamento"
 				}
 			],
 			"sinks": [],
 			"transformations": [],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> CSVfatoFaturamento"
+				"source(output(",
+				"          NOTA_FISCAL as string,",
+				"          DATA_EMISSAO as date,",
+				"          COD_EVENTO as string,",
+				"          COD_CLIENTE as short,",
+				"          SKU_PRODUTO as string,",
+				"          UNID as string,",
+				"          QUANTIDADE as short,",
+				"          PRECO_UNITARIO as short,",
+				"          COND_FRETE as string,",
+				"          CUSTO_FRETE_UNIT as double,",
+				"          NF_ORIGEM_DEV as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVfatoFaturamento"
 			]
 		}
 	}
