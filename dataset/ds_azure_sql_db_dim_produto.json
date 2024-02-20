@@ -10,33 +10,7 @@
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
-		"schema": [
-			{
-				"name": "SK_PRODUTO",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "SKU",
-				"type": "nvarchar"
-			},
-			{
-				"name": "PRODUTO",
-				"type": "nvarchar"
-			},
-			{
-				"name": "CATEGORIA",
-				"type": "nvarchar"
-			},
-			{
-				"name": "ARMAZEM",
-				"type": "nvarchar"
-			},
-			{
-				"name": "CIDADE_ARMAZEM",
-				"type": "nvarchar"
-			}
-		],
+		"schema": [],
 		"typeProperties": {
 			"schema": "comercial",
 			"table": "dimensao_produto"
