@@ -1,0 +1,19 @@
+{
+	"name": "df_fato_faturamento",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "CSVfatoFaturamento"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> CSVfatoFaturamento"
+			]
+		}
+	}
+}
