@@ -10,7 +10,91 @@
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",
-		"schema": [],
+		"schema": [
+			{
+				"name": "SK_VENDEDOR",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "COD_VENDEDOR",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_COMPLETO",
+				"type": "varchar"
+			},
+			{
+				"name": "CARGO",
+				"type": "varchar"
+			},
+			{
+				"name": "REGIAO_VENDA",
+				"type": "varchar"
+			},
+			{
+				"name": "CIDADE_ATUACAO",
+				"type": "varchar"
+			},
+			{
+				"name": "COD_SUP_1",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_COMP_1",
+				"type": "varchar"
+			},
+			{
+				"name": "COD_SUP_2",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_COMP_2",
+				"type": "varchar"
+			},
+			{
+				"name": "COD_SUP_3",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_COMP_3",
+				"type": "varchar"
+			},
+			{
+				"name": "COD_SUP_4",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_COMP_4",
+				"type": "varchar"
+			},
+			{
+				"name": "COD_SUP_5",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_COMP_5",
+				"type": "varchar"
+			},
+			{
+				"name": "ATIVO",
+				"type": "char"
+			},
+			{
+				"name": "DT_INICIO",
+				"type": "date"
+			},
+			{
+				"name": "DT_FIM",
+				"type": "date"
+			}
+		],
 		"typeProperties": {
 			"schema": "comercial",
 			"table": "dimensao_vendedor"
