@@ -1,0 +1,76 @@
+{
+	"name": "ds_azure_sql_db_fato_faturamento",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_database",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Azure SQL Server/Específicos"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "NOTA_FISCAL",
+				"type": "nvarchar"
+			},
+			{
+				"name": "DATA_EMISSAO",
+				"type": "date"
+			},
+			{
+				"name": "COD_EVENTO",
+				"type": "char"
+			},
+			{
+				"name": "PEDIDO_VENDA",
+				"type": "varchar"
+			},
+			{
+				"name": "SK_CLIENTE",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "SK_PRODUTO",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "UNID",
+				"type": "varchar"
+			},
+			{
+				"name": "QUANTIDADE",
+				"type": "decimal",
+				"precision": 16,
+				"scale": 8
+			},
+			{
+				"name": "PRECO_UNITARIO",
+				"type": "decimal",
+				"precision": 16,
+				"scale": 4
+			},
+			{
+				"name": "COND_FRETE",
+				"type": "char"
+			},
+			{
+				"name": "CUSTO_FRETE_UNIT",
+				"type": "decimal",
+				"precision": 16,
+				"scale": 4
+			},
+			{
+				"name": "NF_ORIGEM_DEV",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "faturamento",
+			"table": "fato_faturamento"
+		}
+	}
+}
