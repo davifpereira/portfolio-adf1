@@ -21,7 +21,7 @@
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_azure_sql_db_dim_clientes",
+						"referenceName": "ds_azure_sql_db_dim_cliente",
 						"type": "DatasetReference"
 					},
 					"name": "DBdimCliente"
@@ -44,21 +44,21 @@
 			"sinks": [
 				{
 					"dataset": {
-						"referenceName": "ds_azure_sql_db_dim_clientes",
+						"referenceName": "ds_azure_sql_db_dim_cliente",
 						"type": "DatasetReference"
 					},
 					"name": "InsereBD2"
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_azure_sql_db_dim_clientes",
+						"referenceName": "ds_azure_sql_db_dim_cliente",
 						"type": "DatasetReference"
 					},
 					"name": "AlteraBD"
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_azure_sql_db_dim_clientes",
+						"referenceName": "ds_azure_sql_db_dim_cliente",
 						"type": "DatasetReference"
 					},
 					"name": "InsereBD1"
