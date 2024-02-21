@@ -1,5 +1,5 @@
 {
-	"name": "ds_azure_sql_db_dim_vendedores",
+	"name": "ds_azure_sql_db_dim_vendedor",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_azure_sql_database",
