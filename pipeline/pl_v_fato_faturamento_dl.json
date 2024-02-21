@@ -71,6 +71,17 @@
 							},
 							{
 								"source": {
+									"name": "PEDIDO_VENDA",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PEDIDO_VENDA",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
 									"name": "COD_CLIENTE",
 									"type": "Decimal"
 								},
