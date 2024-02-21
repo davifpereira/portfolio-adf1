@@ -10,6 +10,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "CSVfatoFaturamento"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "DBdimCliente"
 				}
 			],
 			"sinks": [],
@@ -19,19 +26,31 @@
 				"          NOTA_FISCAL as string,",
 				"          DATA_EMISSAO as date,",
 				"          COD_EVENTO as string,",
+				"          PEDIDO_VENDA as string,",
 				"          COD_CLIENTE as integer,",
-				"          SKU_PRODUTO as string,",
+				"          SKU_PRODUTO as integer,",
 				"          UNID as string,",
 				"          QUANTIDADE as float,",
 				"          PRECO_UNITARIO as float,",
 				"          COND_FRETE as string,",
-				"          CUSTO_FRETE_UNIT as double,",
+				"          CUSTO_FRETE_UNIT as float,",
 				"          NF_ORIGEM_DEV as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> CSVfatoFaturamento"
+				"     ignoreNoFilesFound: false) ~> CSVfatoFaturamento",
+				"source(output(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          DT_FIM as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    SK_CLIENTE,\\n    COD_CLIENTE,\\n    DT_FIM\\nFROM \\n    comercial.dimensao_cliente',",
+				"     format: 'query') ~> DBdimCliente"
 			]
 		}
 	}
