@@ -133,7 +133,7 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> LeftJoinRiscoCredito",
-				"SelecionaColunas sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente",
+				"SelecionaColunas sort(asc(COD_CLIENTE, false)) ~> ClassificaCodCliente",
 				"ClassificaCodCliente sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
