@@ -72,6 +72,12 @@
 				},
 				{
 					"name": "DadosNovos"
+				},
+				{
+					"name": "ClassifcaSKU1"
+				},
+				{
+					"name": "ClassificaSKU2"
 				}
 			],
 			"scriptLines": [
@@ -147,7 +153,9 @@
 				"SelecionaColunas, DBdimProduto exists(SelecionaColunas@SKU == DBdimProduto@SKU,",
 				"     negate:true,",
 				"     broadcast: 'auto')~> DadosNovos",
-				"DadosAtualizados sink(allowSchemaDrift: true,",
+				"DadosNovos sort(asc(substring(SKU, 5, 9), false)) ~> ClassifcaSKU1",
+				"DadosAtualizados sort(asc(substring(SKU, 5, 9), false)) ~> ClassificaSKU2",
+				"ClassificaSKU2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_PRODUTO as integer,",
@@ -204,7 +212,7 @@
 				"          ATIVO,",
 				"          DT_FIM",
 				"     )) ~> AlteraBD",
-				"DadosNovos sink(allowSchemaDrift: true,",
+				"ClassifcaSKU1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_PRODUTO as integer,",
