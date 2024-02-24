@@ -218,7 +218,7 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> LeftJoinRiscoCredito",
-				"DadosNovos sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente1",
+				"DadosNovos sort(asc(COD_CLIENTE, false)) ~> ClassificaCodCliente1",
 				"DadosAtualizados sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente2",
 				"ClassificaCodCliente2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
