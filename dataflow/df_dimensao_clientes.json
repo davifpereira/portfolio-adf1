@@ -91,6 +91,12 @@
 				},
 				{
 					"name": "LeftJoinRiscoCredito"
+				},
+				{
+					"name": "ClassificaCodCliente1"
+				},
+				{
+					"name": "ClassificaCodCliente2"
 				}
 			],
 			"scriptLines": [
@@ -212,7 +218,9 @@
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
 				"     broadcast: 'auto')~> LeftJoinRiscoCredito",
-				"DadosAtualizados sink(allowSchemaDrift: true,",
+				"DadosNovos sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente1",
+				"DadosAtualizados sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente2",
+				"ClassificaCodCliente2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_CLIENTE as integer,",
@@ -284,7 +292,7 @@
 				"          ATIVO,",
 				"          DT_FIM",
 				"     )) ~> AlteraBD",
-				"DadosNovos sink(allowSchemaDrift: true,",
+				"ClassificaCodCliente1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_CLIENTE as integer,",
