@@ -26,11 +26,18 @@
 				},
 				{
 					"name": "SelecionaColunas"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "alterRow1"
 				}
 			],
 			"scriptLines": [
 				"parameters{",
-				"     data_inicio as date",
+				"     data_inicio_se_null as date (toDate('1900-1-1', 'yyyy-MM-dd')),",
+				"     data_fim_se_null as date (currentDate('GMT-3'))",
 				"}",
 				"source(output(",
 				"          NOTA_FISCAL as string,",
@@ -62,8 +69,8 @@
 				"     query: 'SELECT \\n    SK_CLIENTE,\\n    COD_CLIENTE,\\n    DT_INICIO,\\n    DT_FIM\\nFROM \\n    comercial.dimensao_cliente',",
 				"     format: 'query') ~> DBdimCliente",
 				"CSVfatoFaturamento, DBdimCliente join(CSVfatoFaturamento@COD_CLIENTE == DBdimCliente@COD_CLIENTE",
-				"     && DATA_EMISSAO == iifNull(DT_INICIO, toDate('1900-01-01'))",
-				"     && DATA_EMISSAO <= iifNull(DT_FIM, currentDate('GMT-3')),",
+				"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+				"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
@@ -83,7 +90,9 @@
 				"          NF_ORIGEM_DEV",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas"
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+				"DBdimCliente derive(DT_FIM = iifNull(DT_FIM, $data_fim_se_null)) ~> derivedColumn1",
+				"derivedColumn1 alterRow(insertIf(1==1)) ~> alterRow1"
 			]
 		}
 	}
