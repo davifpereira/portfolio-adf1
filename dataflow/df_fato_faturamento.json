@@ -47,6 +47,9 @@
 				},
 				{
 					"name": "SelecionaColunas2"
+				},
+				{
+					"name": "ClassificaDatas"
 				}
 			],
 			"scriptLines": [
@@ -140,7 +143,8 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas2",
-				"SelecionaColunas2 sink(allowSchemaDrift: true,",
+				"SelecionaColunas2 sort(asc(DATA_EMISSAO, true)) ~> ClassificaDatas",
+				"ClassificaDatas sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          NOTA_FISCAL as string,",
