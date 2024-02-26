@@ -116,7 +116,7 @@
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT\\n      [SKU]\\n      ,[PRODUTO]\\n      ,[CATEGORIA]\\n      ,[ARMAZEM]\\n      ,[CIDADE_ARMAZEM]\\n      ,[ATIVO]\\n      ,[DT_FIM]\\n  FROM [comercial].[dimensao_produto]',",
+				"     query: 'SELECT\\n      [SKU]\\n      ,[PRODUTO]\\n      ,[CATEGORIA]\\n      ,[ARMAZEM]\\n      ,[CIDADE_ARMAZEM]\\n      ,[ATIVO]\\n      ,[DT_FIM]\\nFROM [comercial].[dimensao_produto]\\nWHERE [ATIVO] = \\'S\\'',",
 				"     format: 'query') ~> DBdimProduto",
 				"DBdimProduto, SelecionaColunas exists(DBdimProduto@SKU == SelecionaColunas@SKU && (\r",
 				"     DBdimProduto@PRODUTO != SelecionaColunas@PRODUTO || \r",
