@@ -26,12 +26,6 @@
 				},
 				{
 					"name": "SelecionaColunas"
-				},
-				{
-					"name": "derivedColumn1"
-				},
-				{
-					"name": "alterRow1"
 				}
 			],
 			"scriptLines": [
@@ -63,7 +57,7 @@
 				"          DT_INICIO as date,",
 				"          DT_FIM as date",
 				"     ),",
-				"     allowSchemaDrift: false,",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT \\n    SK_CLIENTE,\\n    COD_CLIENTE,\\n    DT_INICIO,\\n    DT_FIM\\nFROM \\n    comercial.dimensao_cliente',",
@@ -90,9 +84,7 @@
 				"          NF_ORIGEM_DEV",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
-				"DBdimCliente derive(DT_FIM = iifNull(DT_FIM, $data_fim_se_null)) ~> derivedColumn1",
-				"derivedColumn1 alterRow(insertIf(1==1)) ~> alterRow1"
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas"
 			]
 		}
 	}
