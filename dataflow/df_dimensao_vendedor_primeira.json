@@ -40,6 +40,9 @@
 				},
 				{
 					"name": "DTinicioNula"
+				},
+				{
+					"name": "ClassificaVendedor"
 				}
 			],
 			"scriptLines": [
@@ -99,7 +102,8 @@
 				"     skipDuplicateMapInputs: false,",
 				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
 				"SelecionaColunas derive(DT_INICIO = '') ~> DTinicioNula",
-				"DTinicioNula sink(allowSchemaDrift: true,",
+				"DTinicioNula sort(asc(COD_VENDEDOR, true)) ~> ClassificaVendedor",
+				"ClassificaVendedor sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          SK_VENDEDOR as integer,",
