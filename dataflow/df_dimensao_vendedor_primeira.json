@@ -146,7 +146,8 @@
 				"          COD_SUP_4,",
 				"          NOME_COMP_4,",
 				"          COD_SUP_5,",
-				"          NOME_COMP_5",
+				"          NOME_COMP_5,",
+				"          DT_INICIO",
 				"     )) ~> InsereBD"
 			]
 		}
