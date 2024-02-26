@@ -165,7 +165,7 @@
 				"     updateable:false,",
 				"     upsertable:false,",
 				"     format: 'table',",
-				"     preSQLs:['DELETE FROM [faturamento].[fato_faturamento]\\nWHERE [DATA_EMISSAO] >= dbo.soma_data(-30);'],",
+				"     preSQLs:['DELETE FROM [faturamento].[fato_faturamento]\\nWHERE [DATA_EMISSAO] >= dbo.f_soma_data(-30);'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     errorHandlingOption: 'stopOnFirstError',",
