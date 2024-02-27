@@ -3,50 +3,16 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "conteudo_json_cotacao",
-				"type": "Lookup",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 3,
-					"retryIntervalInSeconds": 60,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "JsonSource",
-						"storeSettings": {
-							"type": "AzureBlobFSReadSettings",
-							"recursive": false,
-							"enablePartitionDiscovery": false
-						},
-						"formatSettings": {
-							"type": "JsonReadSettings"
-						}
-					},
-					"dataset": {
-						"referenceName": "ds_data_lake_json_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"container": {
-								"value": "@pipeline().globalParameters.dl_dados_api",
-								"type": "Expression"
-							},
-							"nome_arquivo": "*",
-							"encoding": "UTF-8"
-						}
-					},
-					"firstRowOnly": false
-				}
-			},
-			{
 				"name": "nome_arquivos",
 				"type": "GetMetadata",
-				"dependsOn": [],
+				"dependsOn": [
+					{
+						"activity": "container",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 3,
@@ -61,7 +27,7 @@
 						"type": "DatasetReference",
 						"parameters": {
 							"container": {
-								"value": "@pipeline().globalParameters.dl_dados_api",
+								"value": "@variables('container')",
 								"type": "Expression"
 							},
 							"nome_arquivo": "*",
@@ -102,6 +68,89 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "para_cada_arquivo_cotacao",
+				"type": "ForEach",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "arquivos_cotacao",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('arquivos_cotacao').output.Value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "cotacao",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "JsonSource",
+									"storeSettings": {
+										"type": "AzureBlobFSReadSettings",
+										"recursive": true,
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "JsonReadSettings"
+									}
+								},
+								"dataset": {
+									"referenceName": "ds_data_lake_json_generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@variables('container')",
+											"type": "Expression"
+										},
+										"nome_arquivo": {
+											"value": "@item()",
+											"type": "Expression"
+										},
+										"encoding": "UTF-8"
+									}
+								},
+								"firstRowOnly": false
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "container",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "container",
+					"value": {
+						"value": "@pipeline().globalParameters.dl_dados_api",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
@@ -117,6 +166,9 @@
 			"schema": {
 				"type": "String",
 				"defaultValue": "faturamento"
+			},
+			"container": {
+				"type": "String"
 			}
 		},
 		"folder": {
