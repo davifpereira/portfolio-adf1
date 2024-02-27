@@ -5,6 +5,8 @@
 			{
 				"name": "conteudo_json_cotacao",
 				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -92,12 +94,16 @@
 					"items": {
 						"value": "@activity('nome_arquivos').output.childItems",
 						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item().name, pipeline().parameters.arquivos_cotacao)",
+						"type": "Expression"
 					}
 				}
 			}
 		],
 		"parameters": {
-			"nome_arquivos": {
+			"arquivos_cotacao": {
 				"type": "string",
 				"defaultValue": "cotacao_"
 			}
