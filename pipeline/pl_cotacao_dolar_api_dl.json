@@ -113,7 +113,7 @@
 									"parameters": {
 										"container": "dados-api",
 										"nome_arquivo": {
-											"value": "@concat('cotacao_dolar_', formatDateTime(variables('data_ontem'), 'dd-MM-yyyy'))",
+											"value": "@concat('cotacao_dolar_', formatDateTime(variables('data_ontem'), 'dd-MM-yyyy'), '.json')",
 											"type": "Expression"
 										},
 										"encoding": "UTF-8"
