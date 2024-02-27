@@ -72,8 +72,6 @@
 			{
 				"name": "para_cada_arquivo_cotacao",
 				"type": "ForEach",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "arquivos_cotacao",
@@ -123,7 +121,7 @@
 											"type": "Expression"
 										},
 										"nome_arquivo": {
-											"value": "@item()",
+											"value": "@item().name",
 											"type": "Expression"
 										},
 										"encoding": "UTF-8"
