@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "OracleSource",
-						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_cliente\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_inicio_carga(5)",
+						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_cliente\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_carga_incremental(30)",
 						"partitionOption": "None",
 						"queryTimeout": "02:00:00"
 					},
