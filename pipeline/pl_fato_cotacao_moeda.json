@@ -75,6 +75,25 @@
 						"type": "JsonReadSettings"
 					}
 				}
+			},
+			{
+				"name": "arquivos_cotacao",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos').output.childItems",
+						"type": "Expression"
+					}
+				}
 			}
 		],
 		"parameters": {
