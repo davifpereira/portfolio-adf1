@@ -40,6 +40,15 @@
 				}
 			}
 		],
+		"variables": {
+			"nome_tabela": {
+				"type": "String"
+			},
+			"schema": {
+				"type": "String",
+				"defaultValue": "faturamento"
+			}
+		},
 		"folder": {
 			"name": "Azure SQL Server"
 		},
