@@ -1,0 +1,9 @@
+{
+	"name": "pl_fato_cotacao_moeda",
+	"properties": {
+		"folder": {
+			"name": "Azure SQL Server"
+		},
+		"annotations": []
+	}
+}
