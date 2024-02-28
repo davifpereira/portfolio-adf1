@@ -155,9 +155,39 @@
 							"typeProperties": {
 								"method": "GET",
 								"url": {
-									"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=moeda,dataCotacao=dataCotacao)?moeda=''', item(), '''&dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+									"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda=''', item(), '''&@dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
 									"type": "Expression"
 								}
+							}
+						},
+						{
+							"name": "testa_valor",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "consulta_api",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(empty(activity('consulta_api').output.value))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "Wait1",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								]
 							}
 						}
 					]
@@ -178,9 +208,12 @@
 				"type": "Array",
 				"defaultValue": [
 					"EUR",
-					" USD",
-					" GBP"
+					"USD",
+					"GBP"
 				]
+			},
+			"nome_moeda": {
+				"type": "String"
 			}
 		},
 		"folder": {
