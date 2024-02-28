@@ -190,7 +190,7 @@
 										"typeProperties": {
 											"variableName": "data_cotacao",
 											"value": {
-												"value": "@activity('consulta_api').output.value['dataHoraCotacao']",
+												"value": "@activity('consulta_api').output.value[1]",
 												"type": "Expression"
 											}
 										}
