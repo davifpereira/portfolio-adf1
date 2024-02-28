@@ -190,7 +190,7 @@
 										"typeProperties": {
 											"variableName": "data_cotacao",
 											"value": {
-												"value": "@substring(activity('consulta_api').output.value[0]['dataHoraCotacao'], 1, 10)\n\n",
+												"value": "@substring(activity('consulta_api').output.value[0]['dataHoraCotacao'], 0, 10)\n\n",
 												"type": "Expression"
 											}
 										}
@@ -207,7 +207,7 @@
 										"typeProperties": {
 											"variableName": "valor_compra",
 											"value": {
-												"value": "@trim(activity('consulta_api').output.value[0]['cotacaoCompra'])",
+												"value": "@activity('consulta_api').output.value[0]['cotacaoCompra']",
 												"type": "Expression"
 											}
 										}
