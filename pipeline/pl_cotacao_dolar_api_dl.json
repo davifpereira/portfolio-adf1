@@ -22,14 +22,9 @@
 			{
 				"name": "dados_cotacao_api",
 				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "data_ontem",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -41,7 +36,7 @@
 				"typeProperties": {
 					"method": "GET",
 					"url": {
-						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao=''', variables('data_ontem'), '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+						"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda=''', variables('moeda'), '''&@dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
 						"type": "Expression"
 					}
 				}
@@ -49,6 +44,8 @@
 			{
 				"name": "confere_existencia_dados",
 				"type": "IfCondition",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "dados_cotacao_api",
@@ -123,11 +120,63 @@
 						}
 					]
 				}
+			},
+			{
+				"name": "para_cada_moeda",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "data_ontem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('moedas')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "consulta_api",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 15,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=moeda,dataCotacao=dataCotacao)?moeda=''', item(), '''&dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
 			}
 		],
+		"parameters": {
+			"tipo_boletim": {
+				"type": "string",
+				"defaultValue": "Fechamento"
+			}
+		},
 		"variables": {
 			"data_ontem": {
 				"type": "String"
+			},
+			"moedas": {
+				"type": "String",
+				"defaultValue": "EUR, USD, GBP"
 			}
 		},
 		"folder": {
