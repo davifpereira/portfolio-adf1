@@ -252,7 +252,7 @@
 												{
 													"type": "Query",
 													"text": {
-														"value": "@concat('''insert into [corporativo].[fato_cotacao_moeda] ([DATA_COTACAO], [SIGLA_MOEDA_BC], [COTACAO]) values (''',variables('data_cotacao'), ''', ''', variables('nome_moeda'), ''',', variables('valor_compra'), ')')",
+														"value": "@concat('insert into [corporativo].[fato_cotacao_moeda] ([DATA_COTACAO], [SIGLA_MOEDA_BC], [COTACAO]) values (''',variables('data_cotacao'), ''', ''', variables('nome_moeda'), ''', ', variables('valor_compra'), ')')",
 														"type": "Expression"
 													}
 												}
