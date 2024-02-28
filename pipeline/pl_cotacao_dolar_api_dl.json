@@ -175,8 +175,12 @@
 				"type": "String"
 			},
 			"moedas": {
-				"type": "String",
-				"defaultValue": "EUR, USD, GBP"
+				"type": "Array",
+				"defaultValue": [
+					"EUR",
+					" USD",
+					" GBP"
+				]
 			}
 		},
 		"folder": {
