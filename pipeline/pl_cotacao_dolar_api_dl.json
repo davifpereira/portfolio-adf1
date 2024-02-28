@@ -5,6 +5,8 @@
 			{
 				"name": "data_ontem",
 				"type": "SetVariable",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"secureOutput": false,
@@ -177,6 +179,17 @@
 									"value": "@not(empty(activity('consulta_api').output.value))",
 									"type": "Expression"
 								},
+								"ifFalseActivities": [
+									{
+										"name": "Wait2",
+										"type": "Wait",
+										"dependsOn": [],
+										"userProperties": [],
+										"typeProperties": {
+											"waitTimeInSeconds": 1
+										}
+									}
+								],
 								"ifTrueActivities": [
 									{
 										"name": "Wait1",
@@ -202,7 +215,8 @@
 		},
 		"variables": {
 			"data_ontem": {
-				"type": "String"
+				"type": "String",
+				"defaultValue": "02-25-2024"
 			},
 			"moedas": {
 				"type": "Array",
