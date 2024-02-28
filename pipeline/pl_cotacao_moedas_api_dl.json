@@ -190,7 +190,7 @@
 										"typeProperties": {
 											"variableName": "data_cotacao",
 											"value": {
-												"value": "@activity('consulta_api').output.value",
+												"value": "@activity('consulta_api').output.value['dataHoraCotacao']",
 												"type": "Expression"
 											}
 										}
@@ -215,9 +215,7 @@
 			"moedas": {
 				"type": "Array",
 				"defaultValue": [
-					"EUR",
-					"USD",
-					"GBP"
+					"EUR"
 				]
 			},
 			"nome_moeda": {
