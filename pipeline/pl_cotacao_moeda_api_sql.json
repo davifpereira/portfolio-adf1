@@ -1,5 +1,5 @@
 {
-	"name": "pl_cotacao_moeda_api_dw",
+	"name": "pl_cotacao_moeda_api_sql",
 	"properties": {
 		"activities": [
 			{
