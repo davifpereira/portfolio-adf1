@@ -297,7 +297,9 @@
 			"moedas": {
 				"type": "Array",
 				"defaultValue": [
-					"EUR"
+					"EUR",
+					"USD",
+					"GBP"
 				]
 			},
 			"nome_moeda": {
