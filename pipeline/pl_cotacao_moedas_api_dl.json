@@ -207,7 +207,7 @@
 										"typeProperties": {
 											"variableName": "valor_compra",
 											"value": {
-												"value": "@activity('consulta_api').output.value[0]['cotacaoCompra']",
+												"value": "@concat('\"',activity('consulta_api').output.value[0]['cotacaoCompra'],'\"')",
 												"type": "Expression"
 											}
 										}
