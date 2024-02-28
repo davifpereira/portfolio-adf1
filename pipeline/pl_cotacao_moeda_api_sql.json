@@ -313,7 +313,7 @@
 			}
 		},
 		"folder": {
-			"name": "Data Lake/API"
+			"name": "Azure SQL Server/API"
 		},
 		"annotations": []
 	}
