@@ -1,5 +1,5 @@
 {
-	"name": "pl_cotacao_moedas_api_dl",
+	"name": "pl_cotacao_moeda_api_dw",
 	"properties": {
 		"activities": [
 			{
@@ -169,6 +169,12 @@
 									"dependencyConditions": [
 										"Succeeded"
 									]
+								},
+								{
+									"activity": "nome_moeda",
+									"dependencyConditions": [
+										"Succeeded"
+									]
 								}
 							],
 							"userProperties": [],
@@ -207,12 +213,71 @@
 										"typeProperties": {
 											"variableName": "valor_compra",
 											"value": {
-												"value": "@concat('\"',activity('consulta_api').output.value[0]['cotacaoCompra'],'\"')",
+												"value": "@string(activity('consulta_api').output.value[0]['cotacaoCompra'])",
 												"type": "Expression"
 											}
 										}
+									},
+									{
+										"name": "insert_dw",
+										"type": "Script",
+										"dependsOn": [
+											{
+												"activity": "data_cotacao",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											},
+											{
+												"activity": "valor_cotacao",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.00:10:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 60,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"linkedServiceName": {
+											"referenceName": "ls_azure_sql_database",
+											"type": "LinkedServiceReference"
+										},
+										"typeProperties": {
+											"scripts": [
+												{
+													"type": "Query",
+													"text": {
+														"value": "@concat('''insert into [corporativo].[fato_cotacao_moeda] ([DATA_COTACAO], [SIGLA_MOEDA_BC], [COTACAO]) values (''',variables('data_cotacao'), ''', ''', variables('nome_moeda'), ''',', variables('valor_compra'), ')')",
+														"type": "Expression"
+													}
+												}
+											],
+											"scriptBlockExecutionTimeout": "02:00:00"
+										}
 									}
 								]
+							}
+						},
+						{
+							"name": "nome_moeda",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nome_moeda",
+								"value": {
+									"value": "@item()",
+									"type": "Expression"
+								}
 							}
 						}
 					]
