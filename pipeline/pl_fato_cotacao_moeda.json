@@ -39,6 +39,7 @@
 					],
 					"storeSettings": {
 						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
 						"enablePartitionDiscovery": false
 					},
 					"formatSettings": {
@@ -189,7 +190,7 @@
 			}
 		},
 		"folder": {
-			"name": "Azure SQL Server"
+			"name": "Tarefas/Azure SQL Server"
 		},
 		"annotations": []
 	}
