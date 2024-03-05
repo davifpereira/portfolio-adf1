@@ -295,35 +295,49 @@
 				}
 			},
 			{
-				"name": "apaga_container_tabelas_bd",
-				"type": "Delete",
-				"dependsOn": [],
+				"name": "pl_exclui_arqs_tabelas-bd_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_fato_faturamento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
 				"policy": {
-					"timeout": "01:00:00",
-					"retry": 3,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
 					"secureInput": false
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataset": {
-						"referenceName": "ds_data_lake_csv_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"container": {
-								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
-								"type": "Expression"
-							},
-							"nome_arquivo": "*"
-						}
+					"pipeline": {
+						"referenceName": "pl_exclui_arqs_tabelas-bd_dl",
+						"type": "PipelineReference"
 					},
-					"enableLogging": true,
-					"storeSettings": {
-						"type": "AzureBlobFSReadSettings",
-						"recursive": true,
-						"enablePartitionDiscovery": false
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_exclui_arquivos-csv_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_exclui_arqs_tabelas-bd_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
 					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_exclui_arquivos-csv_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
 				}
 			}
 		],
