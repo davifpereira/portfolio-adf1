@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "OracleSource",
-						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_fato_faturamento\nWHERE\n    data_emissao >= f_dt_carga_incremental(30)",
+						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_fato_faturamento\nWHERE\n    data_emissao >= f_dt_carga_incremental(60)",
 						"partitionOption": "None",
 						"queryTimeout": "02:00:00"
 					},
