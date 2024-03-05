@@ -1,0 +1,326 @@
+{
+	"name": "execucao_diaria",
+	"properties": {
+		"activities": [
+			{
+				"name": "pl_arqs_csv_excel_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_arqs_csv_excel_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_v_dimensao_cliente_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_arqs_csv_excel_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_v_dimensao_cliente_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_v_dimensao_produto_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_v_dimensao_cliente_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_v_dimensao_produto_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_v_dimensao_vendedor_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_v_dimensao_produto_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_v_dimensao_vendedor_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_v_fato_faturamento_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_v_dimensao_vendedor_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_v_fato_faturamento_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_v_interm_enderecos_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_v_fato_faturamento_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_v_interm_enderecos_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_dimensao_evento_sql",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_v_interm_enderecos_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_dimensao_evento_sql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_cotacao_moeda_api_sql",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_dimensao_evento_sql",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_cotacao_moeda_api_sql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_dimensao_cliente_sql",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_cotacao_moeda_api_sql",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_dimensao_cliente_sql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_dimensao_produto_sql",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_dimensao_cliente_sql",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_dimensao_produto_sql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_dimensao_vendedor_sql",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_dimensao_produto_sql",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_dimensao_vendedor_sql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_fato_faturamento",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_dimensao_vendedor_sql",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_fato_faturamento",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_exclui_arqs_tabelas-bd_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_fato_faturamento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_exclui_arqs_tabelas-bd_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_exclui_arquivos-csv_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_exclui_arqs_tabelas-bd_dl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_exclui_arquivos-csv_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"folder": {
+			"name": "Exceução"
+		},
+		"annotations": []
+	}
+}
