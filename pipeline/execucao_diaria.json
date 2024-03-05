@@ -186,7 +186,7 @@
 					{
 						"activity": "pl_cotacao_moeda_api_sql",
 						"dependencyConditions": [
-							"Succeeded"
+							"Completed"
 						]
 					}
 				],
