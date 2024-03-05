@@ -249,34 +249,11 @@
 				}
 			},
 			{
-				"name": "pl_fato_cotacao_moeda",
-				"type": "ExecutePipeline",
-				"dependsOn": [
-					{
-						"activity": "pl_dimensao_vendedor_sql",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"policy": {
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"pipeline": {
-						"referenceName": "pl_fato_cotacao_moeda",
-						"type": "PipelineReference"
-					},
-					"waitOnCompletion": true
-				}
-			},
-			{
 				"name": "pl_fato_faturamento",
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "pl_fato_cotacao_moeda",
+						"activity": "pl_dimensao_vendedor_sql",
 						"dependencyConditions": [
 							"Succeeded"
 						]
