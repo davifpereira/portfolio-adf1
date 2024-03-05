@@ -71,8 +71,52 @@
 							"typeProperties": {
 								"variableName": "nome_arquivo",
 								"value": {
-									"value": "@item()[0]['name']",
+									"value": "@item()['name']",
 									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "excluir_arquivo",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "nome_arquivo",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_data_lake_csv_generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+											"type": "Expression"
+										},
+										"nome_arquivo": {
+											"value": "@variables('nome_arquivo')",
+											"type": "Expression"
+										},
+										"separador": "*",
+										"encoding": "*"
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"enablePartitionDiscovery": false
 								}
 							}
 						}
