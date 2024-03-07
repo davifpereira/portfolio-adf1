@@ -1,0 +1,22 @@
+{
+	"name": "ls_oracle_servidor",
+	"properties": {
+		"annotations": [],
+		"type": "Oracle",
+		"typeProperties": {
+			"connectionString": "host=localhost;port=1521;serviceName=XEPDB1;user id=CONSULTORIA_BI",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "oracle-consultoria-bi"
+			}
+		},
+		"connectVia": {
+			"referenceName": "ir-servidor",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

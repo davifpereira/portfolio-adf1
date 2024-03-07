@@ -1,0 +1,34 @@
+{
+	"name": "ds_oracle_generico",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_oracle_servidor",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"owner": {
+				"type": "string",
+				"defaultValue": "CONSULTORIA_BI"
+			},
+			"view": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "BD Oracle"
+		},
+		"annotations": [],
+		"type": "OracleTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().owner",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().view",
+				"type": "Expression"
+			}
+		}
+	}
+}

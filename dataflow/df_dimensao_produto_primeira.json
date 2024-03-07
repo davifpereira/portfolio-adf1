@@ -1,0 +1,122 @@
+{
+	"name": "df_dimensao_produto_primeira",
+	"properties": {
+		"folder": {
+			"name": "Primeira Carga"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_dim_produto",
+						"type": "DatasetReference"
+					},
+					"name": "CSVdimProduto",
+					"description": "Import data from ds_data_lake_bd_dim_produto"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_enderecos",
+						"type": "DatasetReference"
+					},
+					"name": "CSVenderecos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_produto",
+						"type": "DatasetReference"
+					},
+					"name": "InsereBD"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LeftJoinEnderecos"
+				},
+				{
+					"name": "SelecionaColunas"
+				},
+				{
+					"name": "ClassifcaSKU"
+				},
+				{
+					"name": "DTinicioNula"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          SKU as string,",
+				"          PRODUTO as string,",
+				"          DT_DESATIVACAO as string,",
+				"          CATEGORIA as string,",
+				"          ARMAZEM as string,",
+				"          COD_CIDADE as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVdimProduto",
+				"source(output(",
+				"          COD_CIDADE as integer,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVenderecos",
+				"CSVdimProduto, CSVenderecos join(CSVdimProduto@COD_CIDADE == CSVenderecos@COD_CIDADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinEnderecos",
+				"LeftJoinEnderecos select(mapColumn(",
+				"          SKU,",
+				"          PRODUTO,",
+				"          CATEGORIA,",
+				"          ARMAZEM,",
+				"          CIDADE_ARMAZENAGEM = CIDADE",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+				"DTinicioNula sort(asc(toInteger(substring(SKU, 5, 9))\r",
+				", false)) ~> ClassifcaSKU",
+				"SelecionaColunas derive(DT_INICIO = '') ~> DTinicioNula",
+				"ClassifcaSKU sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_PRODUTO as integer,",
+				"          SKU as string,",
+				"          PRODUTO as string,",
+				"          CATEGORIA as string,",
+				"          ARMAZEM as string,",
+				"          CIDADE_ARMAZEM as string,",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SKU,",
+				"          PRODUTO,",
+				"          CATEGORIA,",
+				"          ARMAZEM,",
+				"          CIDADE_ARMAZEM = CIDADE_ARMAZENAGEM,",
+				"          DT_INICIO",
+				"     )) ~> InsereBD"
+			]
+		}
+	}
+}

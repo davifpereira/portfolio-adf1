@@ -1,0 +1,143 @@
+{
+	"name": "pl_v_dimensao_cliente_dl",
+	"properties": {
+		"activities": [
+			{
+				"name": "copia_salva",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_cliente\nWHERE\n    dt_desativacao IS NULL",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CLIENTE",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOME_CLIENTE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NOME_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DT_DESATIVACAO",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DT_DESATIVACAO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PORTE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PORTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "COD_CIDADE",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "COD_CIDADE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI",
+							"view": "*"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Tarefas/Data Lake/Banco de dados"
+		},
+		"annotations": []
+	}
+}

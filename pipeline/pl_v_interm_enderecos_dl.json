@@ -1,0 +1,125 @@
+{
+	"name": "pl_v_interm_enderecos_dl",
+	"properties": {
+		"activities": [
+			{
+				"name": "copia_salva",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CIDADE",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "COD_CIDADE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CIDADE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "CIDADE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "ESTADO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "ESTADO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PAIS",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PAIS",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI",
+							"view": "V_INTERM_ENDERECOS"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+								"type": "Expression"
+							},
+							"separador": "@pipeline().globalParameters.separador_padrao",
+							"encoding": "@pipeline().globalParameters.encoding_padrao"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Tarefas/Data Lake/Banco de dados"
+		},
+		"annotations": []
+	}
+}

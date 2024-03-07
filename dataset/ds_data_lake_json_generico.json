@@ -1,0 +1,44 @@
+{
+	"name": "ds_data_lake_json_generico",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_datalake",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"container": {
+				"type": "string"
+			},
+			"nome_arquivo": {
+				"type": "string"
+			},
+			"encoding": {
+				"type": "string",
+				"defaultValue": "UTF-8"
+			}
+		},
+		"folder": {
+			"name": "Data Lake/Genéricos"
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().nome_arquivo",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().container",
+					"type": "Expression"
+				}
+			},
+			"encodingName": {
+				"value": "@dataset().encoding",
+				"type": "Expression"
+			}
+		},
+		"schema": {}
+	}
+}

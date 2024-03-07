@@ -1,0 +1,57 @@
+{
+	"name": "ds_azure_sql_db_dim_produto",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_database",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Azure SQL Server/Específicos"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SK_PRODUTO",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "SKU",
+				"type": "varchar"
+			},
+			{
+				"name": "PRODUTO",
+				"type": "varchar"
+			},
+			{
+				"name": "CATEGORIA",
+				"type": "varchar"
+			},
+			{
+				"name": "ARMAZEM",
+				"type": "varchar"
+			},
+			{
+				"name": "CIDADE_ARMAZEM",
+				"type": "varchar"
+			},
+			{
+				"name": "ATIVO",
+				"type": "char"
+			},
+			{
+				"name": "DT_INICIO",
+				"type": "date"
+			},
+			{
+				"name": "DT_FIM",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "comercial",
+			"table": "dimensao_produto"
+		}
+	}
+}

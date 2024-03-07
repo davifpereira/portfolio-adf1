@@ -1,0 +1,384 @@
+{
+	"name": "df_dimensao_clientes",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "CSVdimClientes",
+					"description": "Import data from ds_data_lake_bd_dim_clientes"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_enderecos",
+						"type": "DatasetReference"
+					},
+					"name": "CSVenderecos"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "DBdimCliente"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_risco_credito",
+						"type": "DatasetReference"
+					},
+					"name": "CSVriscoCredito"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_latitude_long_clientes",
+						"type": "DatasetReference"
+					},
+					"name": "CSVlatitudeLongitude"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "InsereBD2"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "AlteraBD1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "InsereBD1"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "AlteraBD2"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DadosAlteradosSCD2"
+				},
+				{
+					"name": "ColunaDtFim"
+				},
+				{
+					"name": "Condicao1"
+				},
+				{
+					"name": "LeftJoinEnderecos"
+				},
+				{
+					"name": "DadosAtualizados"
+				},
+				{
+					"name": "SelecionaColunas"
+				},
+				{
+					"name": "DadosNovos"
+				},
+				{
+					"name": "LeftJoinLatitudeLongitude"
+				},
+				{
+					"name": "LeftJoinRiscoCredito"
+				},
+				{
+					"name": "ClassificaCodCliente1"
+				},
+				{
+					"name": "ClassificaCodCliente2"
+				},
+				{
+					"name": "DadosAlteradosSCD1"
+				},
+				{
+					"name": "Condicao2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          DT_DESATIVACAO as string,",
+				"          PORTE as string,",
+				"          COD_CIDADE as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVdimClientes",
+				"source(output(",
+				"          COD_CIDADE as integer,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVenderecos",
+				"source(output(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          PORTE as string,",
+				"          RISCO_CREDITO as string,",
+				"          SIGLA as string,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          LATITUDE as float,",
+				"          LONGITUDE as float,",
+				"          ATIVO as string,",
+				"          DT_FIM as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT\\n       [SK_CLIENTE] \\n      ,[COD_CLIENTE]\\n      ,[NOME_CLIENTE]\\n      ,[PORTE]\\n      ,[RISCO_CREDITO]\\n      ,[SIGLA]\\n      ,[CIDADE]\\n      ,[ESTADO]\\n      ,[LATITUDE]\\n      ,[LONGITUDE]\\n      ,[ATIVO]\\n      ,[DT_FIM]\\nFROM [comercial].[dimensao_cliente]\\nWHERE \\n     [ATIVO] = \\'S\\'',",
+				"     format: 'query') ~> DBdimCliente",
+				"source(output(",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          RISCO_CREDITO as string,",
+				"          SIGLA as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVriscoCredito",
+				"source(output(",
+				"          COD_CLIENTE as integer,",
+				"          LATITUDE as float,",
+				"          LONGITUDE as float",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVlatitudeLongitude",
+				"DBdimCliente, SelecionaColunas exists(DBdimCliente@COD_CLIENTE == SelecionaColunas@COD_CLIENTE && (     \r",
+				"     DBdimCliente@NOME_CLIENTE != SelecionaColunas@NOME_CLIENTE || \r",
+				"     DBdimCliente@PORTE != SelecionaColunas@PORTE || \r",
+				"     DBdimCliente@RISCO_CREDITO != SelecionaColunas@RISCO_CREDITO ||\r",
+				"     DBdimCliente@CIDADE != SelecionaColunas@CIDADE || \r",
+				"     DBdimCliente@ESTADO != SelecionaColunas@ESTADO\r",
+				"),",
+				"     negate:false,",
+				"     broadcast: 'auto')~> DadosAlteradosSCD2",
+				"DadosAlteradosSCD2 derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
+				"          ATIVO = 'N') ~> ColunaDtFim",
+				"ColunaDtFim alterRow(updateIf(1==1)) ~> Condicao1",
+				"CSVdimClientes, CSVenderecos join(CSVdimClientes@COD_CIDADE == CSVenderecos@COD_CIDADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinEnderecos",
+				"SelecionaColunas, DBdimCliente exists(DBdimCliente@COD_CLIENTE == SelecionaColunas@COD_CLIENTE && (     \r",
+				"     DBdimCliente@NOME_CLIENTE != SelecionaColunas@NOME_CLIENTE || \r",
+				"     DBdimCliente@PORTE != SelecionaColunas@PORTE || \r",
+				"     DBdimCliente@RISCO_CREDITO != SelecionaColunas@RISCO_CREDITO ||\r",
+				"     DBdimCliente@CIDADE != SelecionaColunas@CIDADE || \r",
+				"     DBdimCliente@ESTADO != SelecionaColunas@ESTADO\r",
+				"),",
+				"     negate:false,",
+				"     broadcast: 'auto')~> DadosAtualizados",
+				"LeftJoinRiscoCredito select(mapColumn(",
+				"          COD_CLIENTE = CSVdimClientes@COD_CLIENTE,",
+				"          NOME_CLIENTE = CSVdimClientes@NOME_CLIENTE,",
+				"          PORTE,",
+				"          RISCO_CREDITO,",
+				"          SIGLA,",
+				"          CIDADE,",
+				"          ESTADO,",
+				"          PAIS,",
+				"          LATITUDE,",
+				"          LONGITUDE",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+				"SelecionaColunas, DBdimCliente exists(SelecionaColunas@COD_CLIENTE == DBdimCliente@COD_CLIENTE,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> DadosNovos",
+				"LeftJoinEnderecos, CSVlatitudeLongitude join(CSVdimClientes@COD_CLIENTE == CSVlatitudeLongitude@COD_CLIENTE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinLatitudeLongitude",
+				"LeftJoinLatitudeLongitude, CSVriscoCredito join(CSVdimClientes@COD_CLIENTE == CSVriscoCredito@COD_CLIENTE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinRiscoCredito",
+				"DadosNovos sort(asc(COD_CLIENTE, false)) ~> ClassificaCodCliente1",
+				"DadosAtualizados sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente2",
+				"DBdimCliente, SelecionaColunas exists(DBdimCliente@COD_CLIENTE == SelecionaColunas@COD_CLIENTE && (     \r",
+				"     DBdimCliente@LATITUDE != SelecionaColunas@LATITUDE ||\r",
+				"    DBdimCliente@LONGITUDE != SelecionaColunas@LONGITUDE\r",
+				"),",
+				"     negate:false,",
+				"     broadcast: 'auto')~> DadosAlteradosSCD1",
+				"DadosAlteradosSCD1 alterRow(updateIf(1==1)) ~> Condicao2",
+				"ClassificaCodCliente2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          PORTE as string,",
+				"          RISCO_CREDITO as string,",
+				"          SIGLA as string,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string,",
+				"          LATITUDE as decimal(6,4),",
+				"          LONGITUDE as decimal(6,4),",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          COD_CLIENTE,",
+				"          NOME_CLIENTE,",
+				"          PORTE,",
+				"          RISCO_CREDITO,",
+				"          SIGLA,",
+				"          CIDADE,",
+				"          ESTADO,",
+				"          PAIS,",
+				"          LATITUDE,",
+				"          LONGITUDE",
+				"     )) ~> InsereBD2",
+				"Condicao1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          PORTE as string,",
+				"          RISCO_CREDITO as string,",
+				"          SIGLA as string,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string,",
+				"          LATITUDE as decimal(6,4),",
+				"          LONGITUDE as decimal(6,4),",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['SK_CLIENTE'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SK_CLIENTE,",
+				"          ATIVO,",
+				"          DT_FIM",
+				"     )) ~> AlteraBD1",
+				"ClassificaCodCliente1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          PORTE as string,",
+				"          RISCO_CREDITO as string,",
+				"          SIGLA as string,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string,",
+				"          LATITUDE as decimal(6,4),",
+				"          LONGITUDE as decimal(6,4),",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          COD_CLIENTE,",
+				"          NOME_CLIENTE,",
+				"          PORTE,",
+				"          RISCO_CREDITO,",
+				"          SIGLA,",
+				"          CIDADE,",
+				"          ESTADO,",
+				"          PAIS,",
+				"          LATITUDE,",
+				"          LONGITUDE",
+				"     )) ~> InsereBD1",
+				"Condicao2 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          NOME_CLIENTE as string,",
+				"          PORTE as string,",
+				"          RISCO_CREDITO as string,",
+				"          SIGLA as string,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string,",
+				"          LATITUDE as decimal(6,4),",
+				"          LONGITUDE as decimal(6,4),",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['SK_CLIENTE'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          SK_CLIENTE,",
+				"          LATITUDE,",
+				"          LONGITUDE",
+				"     )) ~> AlteraBD2"
+			]
+		}
+	}
+}

@@ -1,0 +1,148 @@
+{
+	"name": "pl_dimensao_evento_sql",
+	"properties": {
+		"activities": [
+			{
+				"name": "copia_salva",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "nome_tabela",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_evento\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_inicio_carga(5)",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"preCopyScript": {
+							"value": "@concat('TRUNCATE TABLE ', variables('schema'), '.', variables('nome_tabela'))",
+							"type": "Expression"
+						},
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false,
+						"disableMetricsCollection": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "EVENTO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "EVENTO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DESCRICAO_EVENTO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "DESCRICAO_EVENTO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							},
+							{
+								"source": {
+									"name": "OPERACAO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "OPERACAO",
+									"type": "String",
+									"physicalType": "nvarchar"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI",
+							"view": "*"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_azure_sql_db_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": {
+								"value": "@variables('schema')",
+								"type": "Expression"
+							},
+							"tabela": {
+								"value": "@variables('nome_tabela')",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "nome_tabela",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "nome_tabela",
+					"value": {
+						"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
+						"type": "Expression"
+					}
+				}
+			}
+		],
+		"variables": {
+			"nome_tabela": {
+				"type": "String"
+			},
+			"schema": {
+				"type": "String",
+				"defaultValue": "faturamento"
+			}
+		},
+		"folder": {
+			"name": "Tarefas/Azure SQL Server"
+		},
+		"annotations": []
+	}
+}

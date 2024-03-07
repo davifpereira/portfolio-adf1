@@ -1,0 +1,42 @@
+{
+	"name": "pl_fato_faturamento",
+	"properties": {
+		"activities": [
+			{
+				"name": "insert_update_dw",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_fato_faturamento",
+						"type": "DataFlowReference",
+						"parameters": {
+							"data_inicio_se_null": "toDate('1900-1-1','yyyy-MM-dd')",
+							"data_fim_se_null": "currentDate('GMT-3')"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "None",
+					"cacheSinks": {
+						"firstRowOnly": true
+					}
+				}
+			}
+		],
+		"folder": {
+			"name": "Tarefas/Azure SQL Server"
+		},
+		"annotations": []
+	}
+}

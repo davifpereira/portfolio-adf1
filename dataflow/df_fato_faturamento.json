@@ -1,0 +1,189 @@
+{
+	"name": "df_fato_faturamento",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_fato_faturamento",
+						"type": "DatasetReference"
+					},
+					"name": "CSVfatoFaturamento"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"type": "DatasetReference"
+					},
+					"name": "DBdimCliente"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_produto",
+						"type": "DatasetReference"
+					},
+					"name": "DBdimProduto"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_fato_faturamento",
+						"type": "DatasetReference"
+					},
+					"name": "InsereBD"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinClienteSCD"
+				},
+				{
+					"name": "SelecionaColunas1"
+				},
+				{
+					"name": "JoinProdutoSCD"
+				},
+				{
+					"name": "SelecionaColunas2"
+				},
+				{
+					"name": "ClassificaDatas"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     data_inicio_se_null as date (toDate('1900-1-1','yyyy-MM-dd')),",
+				"     data_fim_se_null as date (currentDate('GMT-3'))",
+				"}",
+				"source(output(",
+				"          NOTA_FISCAL as string,",
+				"          DATA_EMISSAO as date,",
+				"          COD_EVENTO as string,",
+				"          PEDIDO_VENDA as string,",
+				"          COD_CLIENTE as integer,",
+				"          SKU_PRODUTO as string,",
+				"          UNID as string,",
+				"          QUANTIDADE as float,",
+				"          PRECO_UNITARIO as float,",
+				"          COND_FRETE as string,",
+				"          CUSTO_FRETE_UNIT as float,",
+				"          NF_ORIGEM_DEV as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVfatoFaturamento",
+				"source(output(",
+				"          SK_CLIENTE as integer,",
+				"          COD_CLIENTE as integer,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    [SK_CLIENTE]\\n    ,[COD_CLIENTE]\\n    ,[DT_INICIO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_cliente]',",
+				"     format: 'query') ~> DBdimCliente",
+				"source(output(",
+				"          SK_PRODUTO as integer,",
+				"          SKU as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT \\n    [SK_PRODUTO]\\n    ,[SKU]\\n    ,[DT_INICIO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_produto]',",
+				"     format: 'query') ~> DBdimProduto",
+				"CSVfatoFaturamento, DBdimCliente join(CSVfatoFaturamento@COD_CLIENTE == DBdimCliente@COD_CLIENTE",
+				"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+				"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'both')~> JoinClienteSCD",
+				"JoinClienteSCD select(mapColumn(",
+				"          NOTA_FISCAL,",
+				"          DATA_EMISSAO,",
+				"          COD_EVENTO,",
+				"          PEDIDO_VENDA,",
+				"          SK_CLIENTE,",
+				"          SKU_PRODUTO,",
+				"          UNID,",
+				"          QUANTIDADE,",
+				"          PRECO_UNITARIO,",
+				"          COND_FRETE,",
+				"          CUSTO_FRETE_UNIT,",
+				"          NF_ORIGEM_DEV",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas1",
+				"SelecionaColunas1, DBdimProduto join(SKU_PRODUTO == SKU",
+				"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+				"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'both')~> JoinProdutoSCD",
+				"JoinProdutoSCD select(mapColumn(",
+				"          NOTA_FISCAL,",
+				"          DATA_EMISSAO,",
+				"          COD_EVENTO,",
+				"          PEDIDO_VENDA,",
+				"          SK_CLIENTE,",
+				"          SK_PRODUTO,",
+				"          UNID,",
+				"          QUANTIDADE,",
+				"          PRECO_UNITARIO,",
+				"          COND_FRETE,",
+				"          CUSTO_FRETE_UNIT,",
+				"          NF_ORIGEM_DEV",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas2",
+				"SelecionaColunas2 sort(asc(DATA_EMISSAO, true)) ~> ClassificaDatas",
+				"ClassificaDatas sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          NOTA_FISCAL as string,",
+				"          DATA_EMISSAO as date,",
+				"          COD_EVENTO as string,",
+				"          PEDIDO_VENDA as string,",
+				"          SK_CLIENTE as integer,",
+				"          SK_PRODUTO as integer,",
+				"          UNID as string,",
+				"          QUANTIDADE as decimal(16,8),",
+				"          PRECO_UNITARIO as decimal(16,4),",
+				"          COND_FRETE as string,",
+				"          CUSTO_FRETE_UNIT as decimal(16,4),",
+				"          NF_ORIGEM_DEV as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     preSQLs:['DELETE FROM [faturamento].[fato_faturamento]\\nWHERE [DATA_EMISSAO] >= dbo.f_dt_carga_incremental(-60);'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          NOTA_FISCAL,",
+				"          DATA_EMISSAO,",
+				"          COD_EVENTO,",
+				"          PEDIDO_VENDA,",
+				"          SK_CLIENTE,",
+				"          SK_PRODUTO,",
+				"          UNID,",
+				"          QUANTIDADE,",
+				"          PRECO_UNITARIO,",
+				"          COND_FRETE,",
+				"          CUSTO_FRETE_UNIT,",
+				"          NF_ORIGEM_DEV",
+				"     )) ~> InsereBD"
+			]
+		}
+	}
+}

@@ -1,0 +1,159 @@
+{
+	"name": "df_dimensao_vendedor_primeira",
+	"properties": {
+		"folder": {
+			"name": "Primeira Carga"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_dim_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "CSVdimVendedor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_enderecos",
+						"type": "DatasetReference"
+					},
+					"name": "CSVenderecos"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "InsereBD"
+				}
+			],
+			"transformations": [
+				{
+					"name": "LeftJoinEnderecos"
+				},
+				{
+					"name": "SelecionaColunas"
+				},
+				{
+					"name": "DTinicioNula"
+				},
+				{
+					"name": "ClassificaVendedor"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          COD_VENDEDOR as integer,",
+				"          NOME_COMPLETO as string,",
+				"          CARGO as string,",
+				"          REGIAO_VENDA as string,",
+				"          CIDADE_ATUACAO as integer,",
+				"          COD_SUP_1 as integer,",
+				"          NOME_COMP_1 as string,",
+				"          COD_SUP_2 as integer,",
+				"          NOME_COMP_2 as string,",
+				"          COD_SUP_3 as integer,",
+				"          NOME_COMP_3 as string,",
+				"          COD_SUP_4 as integer,",
+				"          NOME_COMP_4 as string,",
+				"          COD_SUP_5 as integer,",
+				"          NOME_COMP_5 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVdimVendedor",
+				"source(output(",
+				"          COD_CIDADE as integer,",
+				"          CIDADE as string,",
+				"          ESTADO as string,",
+				"          PAIS as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVenderecos",
+				"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> LeftJoinEnderecos",
+				"LeftJoinEnderecos select(mapColumn(",
+				"          COD_VENDEDOR,",
+				"          NOME_COMPLETO,",
+				"          CARGO,",
+				"          REGIAO_VENDA,",
+				"          CIDADE_ATUACAO = CIDADE,",
+				"          COD_SUP_1,",
+				"          NOME_COMP_1,",
+				"          COD_SUP_2,",
+				"          NOME_COMP_2,",
+				"          COD_SUP_3,",
+				"          NOME_COMP_3,",
+				"          COD_SUP_4,",
+				"          NOME_COMP_4,",
+				"          COD_SUP_5,",
+				"          NOME_COMP_5",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+				"SelecionaColunas derive(DT_INICIO = '') ~> DTinicioNula",
+				"DTinicioNula sort(asc(COD_VENDEDOR, true)) ~> ClassificaVendedor",
+				"ClassificaVendedor sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          SK_VENDEDOR as integer,",
+				"          COD_VENDEDOR as integer,",
+				"          NOME_COMPLETO as string,",
+				"          CARGO as string,",
+				"          REGIAO_VENDA as string,",
+				"          CIDADE_ATUACAO as string,",
+				"          COD_SUP_1 as integer,",
+				"          NOME_COMP_1 as string,",
+				"          COD_SUP_2 as integer,",
+				"          NOME_COMP_2 as string,",
+				"          COD_SUP_3 as integer,",
+				"          NOME_COMP_3 as string,",
+				"          COD_SUP_4 as integer,",
+				"          NOME_COMP_4 as string,",
+				"          COD_SUP_5 as integer,",
+				"          NOME_COMP_5 as string,",
+				"          ATIVO as string,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          COD_VENDEDOR,",
+				"          NOME_COMPLETO,",
+				"          CARGO,",
+				"          REGIAO_VENDA,",
+				"          CIDADE_ATUACAO,",
+				"          COD_SUP_1,",
+				"          NOME_COMP_1,",
+				"          COD_SUP_2,",
+				"          NOME_COMP_2,",
+				"          COD_SUP_3,",
+				"          NOME_COMP_3,",
+				"          COD_SUP_4,",
+				"          NOME_COMP_4,",
+				"          COD_SUP_5,",
+				"          NOME_COMP_5,",
+				"          DT_INICIO",
+				"     )) ~> InsereBD"
+			]
+		}
+	}
+}

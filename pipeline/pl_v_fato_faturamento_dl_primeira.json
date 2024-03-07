@@ -1,0 +1,214 @@
+{
+	"name": "pl_v_fato_faturamento_dl_primeira",
+	"properties": {
+		"activities": [
+			{
+				"name": "copia_salva",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_fato_faturamento\nWHERE\n    data_emissao >= f_dt_inicio_carga(5)",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "NOTA_FISCAL",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NOTA_FISCAL",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DATA_EMISSAO",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "DATA_EMISSAO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "COD_EVENTO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "COD_EVENTO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PEDIDO_VENDA",
+									"type": "String"
+								},
+								"sink": {
+									"name": "PEDIDO_VENDA",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "COD_CLIENTE",
+									"type": "Decimal"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SKU_PRODUTO",
+									"type": "String"
+								},
+								"sink": {
+									"name": "SKU_PRODUTO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "UNID",
+									"type": "String"
+								},
+								"sink": {
+									"name": "UNID",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "QUANTIDADE",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "QUANTIDADE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "PRECO_UNITARIO",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "PRECO_UNITARIO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "COND_FRETE",
+									"type": "String"
+								},
+								"sink": {
+									"name": "COND_FRETE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "CUSTO_FRETE_UNIT",
+									"type": "Double"
+								},
+								"sink": {
+									"name": "CUSTO_FRETE_UNIT",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NF_ORIGEM_DEV",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NF_ORIGEM_DEV",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI",
+							"view": "*"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl_primeira', ''), '.csv')",
+								"type": "Expression"
+							},
+							"separador": "@pipeline().globalParameters.separador_padrao",
+							"encoding": "@pipeline().globalParameters.encoding_padrao"
+						}
+					}
+				]
+			}
+		],
+		"folder": {
+			"name": "Tarefas/Data Lake/Banco de dados/Primeira Carga"
+		},
+		"annotations": []
+	}
+}

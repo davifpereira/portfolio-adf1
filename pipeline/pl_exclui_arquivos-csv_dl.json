@@ -1,0 +1,137 @@
+{
+	"name": "pl_exclui_arquivos-csv_dl",
+	"properties": {
+		"activities": [
+			{
+				"name": "nome_arquivos",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_arquivos_csv",
+								"type": "Expression"
+							},
+							"nome_arquivo": "*",
+							"separador": "*",
+							"encoding": "*"
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"enablePartitionDiscovery": false
+					},
+					"formatSettings": {
+						"type": "DelimitedTextReadSettings"
+					}
+				}
+			},
+			{
+				"name": "cada_arquivo",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos').output.childItems",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "nome_arquivo",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nome_arquivo",
+								"value": {
+									"value": "@item()['name']",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "excluir_arquivo",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "nome_arquivo",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "ds_data_lake_csv_generico",
+									"type": "DatasetReference",
+									"parameters": {
+										"container": {
+											"value": "@pipeline().globalParameters.dl_arquivos_csv",
+											"type": "Expression"
+										},
+										"nome_arquivo": {
+											"value": "@variables('nome_arquivo')",
+											"type": "Expression"
+										},
+										"separador": "*",
+										"encoding": "*"
+									}
+								},
+								"enableLogging": false,
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"enablePartitionDiscovery": false
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"variables": {
+			"nome_arquivo": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Tarefas/Exclusões"
+		},
+		"annotations": []
+	}
+}

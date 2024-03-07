@@ -1,0 +1,82 @@
+{
+	"name": "ds_azure_sql_db_dim_cliente",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_database",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Azure SQL Server/Específicos"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "SK_CLIENTE",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "COD_CLIENTE",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NOME_CLIENTE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PORTE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "RISCO_CREDITO",
+				"type": "nvarchar"
+			},
+			{
+				"name": "SIGLA",
+				"type": "nvarchar"
+			},
+			{
+				"name": "CIDADE",
+				"type": "nvarchar"
+			},
+			{
+				"name": "ESTADO",
+				"type": "nvarchar"
+			},
+			{
+				"name": "PAIS",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LATITUDE",
+				"type": "decimal",
+				"precision": 6,
+				"scale": 4
+			},
+			{
+				"name": "LONGITUDE",
+				"type": "decimal",
+				"precision": 6,
+				"scale": 4
+			},
+			{
+				"name": "ATIVO",
+				"type": "char"
+			},
+			{
+				"name": "DT_INICIO",
+				"type": "date"
+			},
+			{
+				"name": "DT_FIM",
+				"type": "date"
+			}
+		],
+		"typeProperties": {
+			"schema": "comercial",
+			"table": "dimensao_cliente"
+		}
+	}
+}

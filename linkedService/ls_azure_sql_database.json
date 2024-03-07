@@ -1,0 +1,17 @@
+{
+	"name": "ls_azure_sql_database",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "ls_key_vault",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "azure-sqldb-string-adonet-consultoria-bi"
+			}
+		}
+	}
+}

@@ -1,0 +1,218 @@
+{
+	"name": "pl_cotacao_moeda_api_sql",
+	"properties": {
+		"activities": [
+			{
+				"name": "data_ontem",
+				"type": "SetVariable",
+				"dependsOn": [],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "data_ontem",
+					"value": {
+						"value": "@formatDateTime(adddays(convertFromUtc(utcNow(), 'E. South America Standard Time'), -1), 'MM-dd-yyyy')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "para_cada_moeda",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "data_ontem",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@variables('moedas')",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "consulta_api",
+							"type": "WebActivity",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.00:10:00",
+								"retry": 3,
+								"retryIntervalInSeconds": 60,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"method": "GET",
+								"url": {
+									"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda=''', item(), '''&@dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "testa_valor",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "consulta_api",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "nome_moeda",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@not(empty(activity('consulta_api').output.value))",
+									"type": "Expression"
+								},
+								"ifTrueActivities": [
+									{
+										"name": "data_cotacao",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "data_cotacao",
+											"value": {
+												"value": "@substring(activity('consulta_api').output.value[0]['dataHoraCotacao'], 0, 10)\n\n",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "valor_cotacao",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "valor_compra",
+											"value": {
+												"value": "@string(activity('consulta_api').output.value[0]['cotacaoCompra'])",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "insert_dw",
+										"type": "Script",
+										"dependsOn": [
+											{
+												"activity": "data_cotacao",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											},
+											{
+												"activity": "valor_cotacao",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.00:10:00",
+											"retry": 2,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"linkedServiceName": {
+											"referenceName": "ls_azure_sql_database",
+											"type": "LinkedServiceReference"
+										},
+										"typeProperties": {
+											"scripts": [
+												{
+													"type": "Query",
+													"text": {
+														"value": "@concat('insert into [corporativo].[fato_cotacao_moeda] ([DATA_COTACAO], [SIGLA_MOEDA_BC], [COTACAO]) values (''',variables('data_cotacao'), ''', ''', variables('nome_moeda'), ''', ', variables('valor_compra'), ')')",
+														"type": "Expression"
+													}
+												}
+											],
+											"scriptBlockExecutionTimeout": "02:00:00"
+										}
+									}
+								]
+							}
+						},
+						{
+							"name": "nome_moeda",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "nome_moeda",
+								"value": {
+									"value": "@item()",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"tipo_boletim": {
+				"type": "string",
+				"defaultValue": "Fechamento"
+			}
+		},
+		"variables": {
+			"data_ontem": {
+				"type": "String"
+			},
+			"moedas": {
+				"type": "Array",
+				"defaultValue": [
+					"EUR",
+					"USD",
+					"GBP"
+				]
+			},
+			"nome_moeda": {
+				"type": "String"
+			},
+			"data_cotacao": {
+				"type": "String"
+			},
+			"valor_compra": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Tarefas/Azure SQL Server/API"
+		},
+		"annotations": []
+	}
+}

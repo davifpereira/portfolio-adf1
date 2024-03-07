@@ -1,0 +1,37 @@
+{
+	"name": "adf-consultoria-bi",
+	"properties": {
+		"globalParameters": {
+			"dl_container_tabelas_bd": {
+				"type": "string",
+				"value": "tabelas-bd"
+			},
+			"dl_arquivos_csv": {
+				"type": "string",
+				"value": "arquivos-csv"
+			},
+			"dl_arquivos_excel": {
+				"type": "string",
+				"value": "arquivos-excel"
+			},
+			"dl_dados_api": {
+				"type": "string",
+				"value": "dados-api"
+			},
+			"separador_padrao": {
+				"type": "string",
+				"value": "|"
+			},
+			"encoding_padrao": {
+				"type": "string",
+				"value": "UTF-8"
+			}
+		}
+	},
+	"location": "brazilsouth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "3a0f2f46-87db-432f-a831-dce77f11c2fa",
+		"tenantId": "fc6e83f5-3759-4e97-a7fa-b5208c1c20b6"
+	}
+}

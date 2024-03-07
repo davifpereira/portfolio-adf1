@@ -1,0 +1,713 @@
+{
+	"name": "pl_arqs_csv_excel_dl",
+	"properties": {
+		"activities": [
+			{
+				"name": "nome_arquivos_pasta",
+				"type": "GetMetadata",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataset": {
+						"referenceName": "ds_data_lake_excel_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"nome_arquivo": "*",
+							"nome_aba": "*",
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							}
+						}
+					},
+					"fieldList": [
+						"childItems"
+					],
+					"storeSettings": {
+						"type": "AzureBlobFSReadSettings",
+						"recursive": true,
+						"enablePartitionDiscovery": false
+					}
+				}
+			},
+			{
+				"name": "para_cada_csv",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filtro_arqs_csv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filtro_arqs_csv').output.Value\n\n",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "separa_latitude_longitude",
+							"type": "IfCondition",
+							"dependsOn": [],
+							"userProperties": [],
+							"typeProperties": {
+								"expression": {
+									"value": "@contains(item().name, pipeline().parameters.base_arq_latitude_long)",
+									"type": "Expression"
+								},
+								"ifFalseActivities": [
+									{
+										"name": "copiar_outros_csv",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 3,
+											"retryIntervalInSeconds": 60,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobFSReadSettings",
+													"recursive": true,
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobFSWriteSettings"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "ds_data_lake_csv_generico",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": {
+														"value": "@pipeline().parameters.container",
+														"type": "Expression"
+													},
+													"nome_arquivo": {
+														"value": "@item().name",
+														"type": "Expression"
+													},
+													"separador": {
+														"value": "@pipeline().parameters.separador_outros_csv",
+														"type": "Expression"
+													},
+													"encoding": {
+														"value": "@pipeline().parameters.encoding_outros_csv",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "ds_data_lake_csv_generico",
+												"type": "DatasetReference",
+												"parameters": {
+													"container": {
+														"value": "@pipeline().globalParameters.dl_arquivos_csv",
+														"type": "Expression"
+													},
+													"nome_arquivo": {
+														"value": "@item().name",
+														"type": "Expression"
+													},
+													"separador": {
+														"value": "@pipeline().globalParameters.separador_padrao",
+														"type": "Expression"
+													},
+													"encoding": {
+														"value": "@pipeline().globalParameters.encoding_padrao",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								],
+								"ifTrueActivities": [
+									{
+										"name": "ano_mes_item_csv",
+										"type": "SetVariable",
+										"dependsOn": [],
+										"policy": {
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "ano_mes_item_csv",
+											"value": {
+												"value": "@substring(item().name, add(indexOf(item().name, '('), 1), sub(indexOf(item().name, ')'), add(indexOf(item().name, '('), 1)))\n\n",
+												"type": "Expression"
+											}
+										}
+									},
+									{
+										"name": "ano_mes_array_csv",
+										"type": "AppendVariable",
+										"dependsOn": [
+											{
+												"activity": "ano_mes_item_csv",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"userProperties": [],
+										"typeProperties": {
+											"variableName": "ano_mes_array_csv",
+											"value": {
+												"value": "@int(replace(variables('ano_mes_item_csv'), '-', ''))\n\n",
+												"type": "Expression"
+											}
+										}
+									}
+								]
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "filtro_arqs_csv",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "espera",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos_pasta').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item().name, '.CSV')",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "ano_mes_filtro_csv",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "para_cada_csv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ano_mes_filtro_csv",
+					"value": {
+						"value": "@concat(substring(string(max(variables('ano_mes_array_csv'))), 0, 4), '-', substring(string(max(variables('ano_mes_array_csv'))), 4, 2))\n\n\n\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "copia_arq_latitude_longitude",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ano_mes_filtro_csv",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "DelimitedTextSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						},
+						"formatSettings": {
+							"type": "DelimitedTextReadSettings"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LATITUDE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LATITUDE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "LONGITUDE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "LONGITUDE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_latitude_long, ' (', variables('ano_mes_filtro_csv'), ').CSV')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().parameters.separador_outros_csv",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().parameters.encoding_outros_csv",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_arquivos_csv",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_latitude_long, '.CSV')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "filtro_arqs_risco_credito",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos_pasta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('nome_arquivos_pasta').output.childItems",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@contains(item().name, pipeline().parameters.base_arq_risco_credito)",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "para_cada_arq_risco_credito",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "filtro_arqs_risco_credito",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('filtro_arqs_risco_credito').output.Value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "ano_mes_item_excel",
+							"type": "SetVariable",
+							"dependsOn": [],
+							"policy": {
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ano_mes_item_excel",
+								"value": {
+									"value": "@substring(item().name, add(indexOf(item().name, '('), 1), sub(indexOf(item().name, ')'), add(indexOf(item().name, '('), 1)))",
+									"type": "Expression"
+								}
+							}
+						},
+						{
+							"name": "ano_mes_array_excel",
+							"type": "AppendVariable",
+							"dependsOn": [
+								{
+									"activity": "ano_mes_item_excel",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"variableName": "ano_mes_array_excel",
+								"value": {
+									"value": "@int(replace(variables('ano_mes_item_excel'), '-', ''))",
+									"type": "Expression"
+								}
+							}
+						}
+					]
+				}
+			},
+			{
+				"name": "ano_mes_filtro_excel",
+				"type": "SetVariable",
+				"dependsOn": [
+					{
+						"activity": "para_cada_arq_risco_credito",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"variableName": "ano_mes_filtro_excel",
+					"value": {
+						"value": "@concat(substring(string(max(variables('ano_mes_array_excel'))), 0, 4), '-', substring(string(max(variables('ano_mes_array_excel'))), 4, 2))\n\n\n\n",
+						"type": "Expression"
+					}
+				}
+			},
+			{
+				"name": "copia_arq_risco_credito",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "ano_mes_filtro_excel",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "ExcelSource",
+						"storeSettings": {
+							"type": "AzureBlobFSReadSettings",
+							"recursive": false,
+							"enablePartitionDiscovery": false
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "COD_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "NOME_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "NOME_CLIENTE",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "RISCO_CREDITO",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "RISCO_CREDITO",
+									"type": "String",
+									"physicalType": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SIGLA",
+									"type": "String",
+									"physicalType": "String"
+								},
+								"sink": {
+									"name": "SIGLA",
+									"type": "String",
+									"physicalType": "String"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_data_lake_excel_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_risco_credito, ' (', variables('ano_mes_filtro_excel'), ').xlsx')",
+								"type": "Expression"
+							},
+							"nome_aba": {
+								"value": "@pipeline().parameters.aba_risco_credito",
+								"type": "Expression"
+							},
+							"container": {
+								"value": "@pipeline().parameters.container",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_arquivos_csv",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(pipeline().parameters.base_arq_risco_credito, '.CSV')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "espera",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "nome_arquivos_pasta",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 120
+				}
+			}
+		],
+		"parameters": {
+			"separador_outros_csv": {
+				"type": "string",
+				"defaultValue": ","
+			},
+			"encoding_outros_csv": {
+				"type": "string",
+				"defaultValue": "UTF-8"
+			},
+			"container": {
+				"type": "string",
+				"defaultValue": "raw-files"
+			},
+			"base_arq_latitude_long": {
+				"type": "string",
+				"defaultValue": "Clientes X Latitude e Longitude"
+			},
+			"base_arq_risco_credito": {
+				"type": "string",
+				"defaultValue": "Classificação dos Clientes - Risco de Crédito"
+			},
+			"aba_risco_credito": {
+				"type": "string",
+				"defaultValue": "Dados"
+			}
+		},
+		"variables": {
+			"ano_mes_item_csv": {
+				"type": "String"
+			},
+			"ano_mes_array_csv": {
+				"type": "Array"
+			},
+			"ano_mes_filtro_csv": {
+				"type": "String"
+			},
+			"ano_mes_item_excel": {
+				"type": "String"
+			},
+			"ano_mes_array_excel": {
+				"type": "Array"
+			},
+			"ano_mes_filtro_excel": {
+				"type": "String"
+			}
+		},
+		"folder": {
+			"name": "Tarefas/Data Lake"
+		},
+		"annotations": []
+	}
+}
