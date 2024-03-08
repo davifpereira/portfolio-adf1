@@ -1,0 +1,101 @@
+{
+	"name": "pl_fato_pedido_venda_vendedor",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy data1",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": {
+							"value": "@activity('pedidos_existentes').output.value",
+							"type": "Expression"
+						},
+						"partitionOption": "None",
+						"convertDecimalToInteger": false,
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "AzureSqlSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_azure_sql_db_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"schema": "comercial",
+							"tabela": "fato_pedido_venda_vendedor"
+						}
+					}
+				]
+			},
+			{
+				"name": "query_pedidos",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"partitionOption": "None",
+						"queryTimeout": "02:00:00"
+					},
+					"dataset": {
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
+		"variables": {
+			"pedidos": {
+				"type": "Array"
+			}
+		},
+		"annotations": []
+	}
+}
