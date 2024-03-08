@@ -7,9 +7,26 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-consultoria-bi"
 		},
-		"AzureKeyVault_properties_typeProperties_baseUrl": {
+		"ls_oracle_servidor_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_oracle_servidor'",
+			"defaultValue": "host=localhost;port=1521;serviceName=XEPDB1;user id=CONSULTORIA_BI"
+		},
+		"ls_key_vault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-consultoria-bi-adf-dl.vault.azure.net/"
+		},
+		"ls_rest_api_aberta_generico_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().url}"
+		},
+		"ls_azure_sql_database_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "azure-sqldb-string-adonet-consultoria-bi"
+		},
+		"ls_datalake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dlsconsultoriabi.dfs.core.windows.net/"
 		}
 	},
 	"variables": {
@@ -17,17 +34,1017 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureKeyVault')]",
+			"name": "[concat(parameters('factoryName'), '/ls_key_vault')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
 				"type": "AzureKeyVault",
 				"typeProperties": {
-					"baseUrl": "[parameters('AzureKeyVault_properties_typeProperties_baseUrl')]"
+					"baseUrl": "[parameters('ls_key_vault_properties_typeProperties_baseUrl')]"
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_rest_api_aberta_generico')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"url": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('ls_rest_api_aberta_generico_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ir-servidor')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_rest_api_bc_dolar')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_rest_api_aberta_generico",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"url": {
+							"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao=''', dataset().data, '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"data": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "APIs"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_rest_api_aberta_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_sql_database')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('ls_azure_sql_database_properties_typeProperties_connectionString_secretName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_vault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_datalake')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_datalake_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "dl-key-consultoria-bi"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_vault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_oracle_servidor')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Oracle",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_oracle_servidor_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "oracle-consultoria-bi"
+					}
+				},
+				"connectVia": {
+					"referenceName": "ir-servidor",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/ir-servidor')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_vault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_cotacao_moeda_api_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "data_ontem",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "data_ontem",
+							"value": {
+								"value": "@formatDateTime(adddays(convertFromUtc(utcNow(), 'E. South America Standard Time'), -1), 'MM-dd-yyyy')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "para_cada_moeda",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "data_ontem",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('moedas')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "consulta_api",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 60,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "GET",
+										"headers": {},
+										"url": {
+											"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda=''', item(), '''&@dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "testa_valor",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "consulta_api",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "nome_moeda",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@not(empty(activity('consulta_api').output.value))",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "data_cotacao",
+												"type": "SetVariable",
+												"dependsOn": [],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "data_cotacao",
+													"value": {
+														"value": "@substring(activity('consulta_api').output.value[0]['dataHoraCotacao'], 0, 10)\n\n",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "valor_cotacao",
+												"type": "SetVariable",
+												"dependsOn": [],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "valor_compra",
+													"value": {
+														"value": "@string(activity('consulta_api').output.value[0]['cotacaoCompra'])",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "insert_dw",
+												"type": "Script",
+												"dependsOn": [
+													{
+														"activity": "data_cotacao",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													},
+													{
+														"activity": "valor_cotacao",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.00:10:00",
+													"retry": 2,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"linkedServiceName": {
+													"referenceName": "ls_azure_sql_database",
+													"type": "LinkedServiceReference"
+												},
+												"typeProperties": {
+													"scripts": [
+														{
+															"type": "Query",
+															"text": {
+																"value": "@concat('insert into [corporativo].[fato_cotacao_moeda] ([DATA_COTACAO], [SIGLA_MOEDA_BC], [COTACAO]) values (''',variables('data_cotacao'), ''', ''', variables('nome_moeda'), ''', ', variables('valor_compra'), ')')",
+																"type": "Expression"
+															}
+														}
+													],
+													"scriptBlockExecutionTimeout": "02:00:00"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "nome_moeda",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "nome_moeda",
+										"value": {
+											"value": "@item()",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"tipo_boletim": {
+						"type": "string",
+						"defaultValue": "Fechamento"
+					}
+				},
+				"variables": {
+					"data_ontem": {
+						"type": "String"
+					},
+					"moedas": {
+						"type": "Array",
+						"defaultValue": [
+							"EUR",
+							"USD",
+							"GBP"
+						]
+					},
+					"nome_moeda": {
+						"type": "String"
+					},
+					"data_cotacao": {
+						"type": "String"
+					},
+					"valor_compra": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server/API"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_dim_cliente')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SK_CLIENTE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COD_CLIENTE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_CLIENTE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PORTE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RISCO_CREDITO",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SIGLA",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CIDADE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ESTADO",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PAIS",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LATITUDE",
+						"type": "decimal",
+						"precision": 6,
+						"scale": 4
+					},
+					{
+						"name": "LONGITUDE",
+						"type": "decimal",
+						"precision": 6,
+						"scale": 4
+					},
+					{
+						"name": "ATIVO",
+						"type": "char"
+					},
+					{
+						"name": "DT_INICIO",
+						"type": "date"
+					},
+					{
+						"name": "DT_FIM",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "comercial",
+					"table": "dimensao_cliente"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_dim_produto')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SK_PRODUTO",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SKU",
+						"type": "varchar"
+					},
+					{
+						"name": "PRODUTO",
+						"type": "varchar"
+					},
+					{
+						"name": "CATEGORIA",
+						"type": "varchar"
+					},
+					{
+						"name": "ARMAZEM",
+						"type": "varchar"
+					},
+					{
+						"name": "CIDADE_ARMAZEM",
+						"type": "varchar"
+					},
+					{
+						"name": "ATIVO",
+						"type": "char"
+					},
+					{
+						"name": "DT_INICIO",
+						"type": "date"
+					},
+					{
+						"name": "DT_FIM",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "comercial",
+					"table": "dimensao_produto"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_dim_vendedor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SK_VENDEDOR",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COD_VENDEDOR",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMPLETO",
+						"type": "varchar"
+					},
+					{
+						"name": "CARGO",
+						"type": "varchar"
+					},
+					{
+						"name": "REGIAO_VENDA",
+						"type": "varchar"
+					},
+					{
+						"name": "CIDADE_ATUACAO",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_1",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_1",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_2",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_2",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_3",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_3",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_4",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_4",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_5",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_5",
+						"type": "varchar"
+					},
+					{
+						"name": "ATIVO",
+						"type": "char"
+					},
+					{
+						"name": "DT_INICIO",
+						"type": "date"
+					},
+					{
+						"name": "DT_FIM",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "comercial",
+					"table": "dimensao_vendedor"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_fato_faturamento')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "NOTA_FISCAL",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DATA_EMISSAO",
+						"type": "date"
+					},
+					{
+						"name": "COD_EVENTO",
+						"type": "char"
+					},
+					{
+						"name": "PEDIDO_VENDA",
+						"type": "varchar"
+					},
+					{
+						"name": "SK_CLIENTE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SK_PRODUTO",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "UNID",
+						"type": "varchar"
+					},
+					{
+						"name": "QUANTIDADE",
+						"type": "decimal",
+						"precision": 16,
+						"scale": 8
+					},
+					{
+						"name": "PRECO_UNITARIO",
+						"type": "decimal",
+						"precision": 16,
+						"scale": 4
+					},
+					{
+						"name": "COND_FRETE",
+						"type": "char"
+					},
+					{
+						"name": "CUSTO_FRETE_UNIT",
+						"type": "decimal",
+						"precision": 16,
+						"scale": 4
+					},
+					{
+						"name": "NF_ORIGEM_DEV",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "faturamento",
+					"table": "fato_faturamento"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schema": {
+						"type": "string"
+					},
+					"tabela": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Azure SQL Server"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tabela",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_dim_cliente')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "dimensao_cliente.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_dim_produto')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "dimensao_produto.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_dim_vendedor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "dimensao_vendedor.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_enderecos')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "interm_enderecos.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_fato_faturamento')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "fato_faturamento.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_csv_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"nome_arquivo": {
+						"type": "string"
+					},
+					"separador": {
+						"type": "string"
+					},
+					"encoding": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake/Genéricos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().nome_arquivo",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().separador",
+						"type": "Expression"
+					},
+					"encodingName": {
+						"value": "@dataset().encoding",
+						"type": "Expression"
+					},
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_excel_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"nome_arquivo": {
+						"type": "string"
+					},
+					"nome_aba": {
+						"type": "string"
+					},
+					"container": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake/Genéricos"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": {
+						"value": "@dataset().nome_aba",
+						"type": "Expression"
+					},
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().nome_arquivo",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
 		}
 	]
 }

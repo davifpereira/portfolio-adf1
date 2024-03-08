@@ -7,9 +7,26 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-consultoria-bi"
 		},
-		"AzureKeyVault_properties_typeProperties_baseUrl": {
+		"ls_oracle_servidor_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_oracle_servidor'",
+			"defaultValue": "host=localhost;port=1521;serviceName=XEPDB1;user id=CONSULTORIA_BI"
+		},
+		"ls_azure_sql_database_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "azure-sqldb-string-adonet-consultoria-bi"
+		},
+		"ls_datalake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dlsconsultoriabi.dfs.core.windows.net/"
+		},
+		"ls_key_vault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-consultoria-bi-adf-dl.vault.azure.net/"
+		},
+		"ls_rest_api_aberta_generico_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().url}"
 		}
 	},
 	"variables": {
@@ -17,17 +34,6284 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/AzureKeyVault')]",
+			"name": "[concat(parameters('factoryName'), '/execucao_diaria')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "pl_arqs_csv_excel_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_arqs_csv_excel_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_v_dimensao_cliente_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_arqs_csv_excel_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_v_dimensao_cliente_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_v_dimensao_produto_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_v_dimensao_cliente_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_v_dimensao_produto_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_v_dimensao_vendedor_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_v_dimensao_produto_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_v_dimensao_vendedor_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_v_fato_faturamento_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_v_dimensao_vendedor_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_v_fato_faturamento_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_v_interm_enderecos_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_v_fato_faturamento_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_v_interm_enderecos_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_dimensao_evento_sql",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_v_interm_enderecos_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dimensao_evento_sql",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_cotacao_moeda_api_sql",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_dimensao_evento_sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_cotacao_moeda_api_sql",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_dimensao_cliente_sql",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_cotacao_moeda_api_sql",
+								"dependencyConditions": [
+									"Completed"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dimensao_cliente_sql",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_dimensao_produto_sql",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_dimensao_cliente_sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dimensao_produto_sql",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_dimensao_vendedor_sql",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_dimensao_produto_sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_dimensao_vendedor_sql",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_fato_faturamento",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_dimensao_vendedor_sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_fato_faturamento",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_exclui_arqs_tabelas-bd_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_fato_faturamento",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_exclui_arqs_tabelas-bd_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "pl_exclui_arquivos-csv_dl",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "pl_exclui_arqs_tabelas-bd_dl",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "pl_exclui_arquivos-csv_dl",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Exceução"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_arqs_csv_excel_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_v_dimensao_cliente_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_v_dimensao_produto_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_v_dimensao_vendedor_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_v_fato_faturamento_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_v_interm_enderecos_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_dimensao_evento_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_cotacao_moeda_api_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_dimensao_cliente_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_dimensao_produto_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_dimensao_vendedor_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_fato_faturamento')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_exclui_arqs_tabelas-bd_dl')]",
+				"[concat(variables('factoryId'), '/pipelines/pl_exclui_arquivos-csv_dl')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_arqs_csv_excel_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "nome_arquivos_pasta",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_data_lake_excel_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"nome_arquivo": "*",
+									"nome_aba": "*",
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									}
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							}
+						}
+					},
+					{
+						"name": "para_cada_csv",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "filtro_arqs_csv",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('filtro_arqs_csv').output.Value\n\n",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "separa_latitude_longitude",
+									"type": "IfCondition",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@contains(item().name, pipeline().parameters.base_arq_latitude_long)",
+											"type": "Expression"
+										},
+										"ifFalseActivities": [
+											{
+												"name": "copiar_outros_csv",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 3,
+													"retryIntervalInSeconds": 60,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "ds_data_lake_csv_generico",
+														"type": "DatasetReference",
+														"parameters": {
+															"container": {
+																"value": "@pipeline().parameters.container",
+																"type": "Expression"
+															},
+															"nome_arquivo": {
+																"value": "@item().name",
+																"type": "Expression"
+															},
+															"separador": {
+																"value": "@pipeline().parameters.separador_outros_csv",
+																"type": "Expression"
+															},
+															"encoding": {
+																"value": "@pipeline().parameters.encoding_outros_csv",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "ds_data_lake_csv_generico",
+														"type": "DatasetReference",
+														"parameters": {
+															"container": {
+																"value": "@pipeline().globalParameters.dl_arquivos_csv",
+																"type": "Expression"
+															},
+															"nome_arquivo": {
+																"value": "@item().name",
+																"type": "Expression"
+															},
+															"separador": {
+																"value": "@pipeline().globalParameters.separador_padrao",
+																"type": "Expression"
+															},
+															"encoding": {
+																"value": "@pipeline().globalParameters.encoding_padrao",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										],
+										"ifTrueActivities": [
+											{
+												"name": "ano_mes_item_csv",
+												"type": "SetVariable",
+												"dependsOn": [],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "ano_mes_item_csv",
+													"value": {
+														"value": "@substring(item().name, add(indexOf(item().name, '('), 1), sub(indexOf(item().name, ')'), add(indexOf(item().name, '('), 1)))\n\n",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "ano_mes_array_csv",
+												"type": "AppendVariable",
+												"dependsOn": [
+													{
+														"activity": "ano_mes_item_csv",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "ano_mes_array_csv",
+													"value": {
+														"value": "@int(replace(variables('ano_mes_item_csv'), '-', ''))\n\n",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "filtro_arqs_csv",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "espera",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('nome_arquivos_pasta').output.childItems",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@contains(item().name, '.CSV')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "ano_mes_filtro_csv",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "para_cada_csv",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ano_mes_filtro_csv",
+							"value": {
+								"value": "@concat(substring(string(max(variables('ano_mes_array_csv'))), 0, 4), '-', substring(string(max(variables('ano_mes_array_csv'))), 4, 2))\n\n\n\n",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "copia_arq_latitude_longitude",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "ano_mes_filtro_csv",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "LATITUDE",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "LATITUDE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "LONGITUDE",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "LONGITUDE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(pipeline().parameters.base_arq_latitude_long, ' (', variables('ano_mes_filtro_csv'), ').CSV')",
+										"type": "Expression"
+									},
+									"separador": {
+										"value": "@pipeline().parameters.separador_outros_csv",
+										"type": "Expression"
+									},
+									"encoding": {
+										"value": "@pipeline().parameters.encoding_outros_csv",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_arquivos_csv",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(pipeline().parameters.base_arq_latitude_long, '.CSV')",
+										"type": "Expression"
+									},
+									"separador": {
+										"value": "@pipeline().globalParameters.separador_padrao",
+										"type": "Expression"
+									},
+									"encoding": {
+										"value": "@pipeline().globalParameters.encoding_padrao",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "filtro_arqs_risco_credito",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "nome_arquivos_pasta",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('nome_arquivos_pasta').output.childItems",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@contains(item().name, pipeline().parameters.base_arq_risco_credito)",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "para_cada_arq_risco_credito",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "filtro_arqs_risco_credito",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('filtro_arqs_risco_credito').output.Value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "ano_mes_item_excel",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "ano_mes_item_excel",
+										"value": {
+											"value": "@substring(item().name, add(indexOf(item().name, '('), 1), sub(indexOf(item().name, ')'), add(indexOf(item().name, '('), 1)))",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "ano_mes_array_excel",
+									"type": "AppendVariable",
+									"dependsOn": [
+										{
+											"activity": "ano_mes_item_excel",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "ano_mes_array_excel",
+										"value": {
+											"value": "@int(replace(variables('ano_mes_item_excel'), '-', ''))",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "ano_mes_filtro_excel",
+						"type": "SetVariable",
+						"dependsOn": [
+							{
+								"activity": "para_cada_arq_risco_credito",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "ano_mes_filtro_excel",
+							"value": {
+								"value": "@concat(substring(string(max(variables('ano_mes_array_excel'))), 0, 4), '-', substring(string(max(variables('ano_mes_array_excel'))), 4, 2))\n\n\n\n",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "copia_arq_risco_credito",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "ano_mes_filtro_excel",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": false,
+									"enablePartitionDiscovery": false
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "NOME_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "RISCO_CREDITO",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "RISCO_CREDITO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "SIGLA",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "SIGLA",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_data_lake_excel_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"nome_arquivo": {
+										"value": "@concat(pipeline().parameters.base_arq_risco_credito, ' (', variables('ano_mes_filtro_excel'), ').xlsx')",
+										"type": "Expression"
+									},
+									"nome_aba": {
+										"value": "@pipeline().parameters.aba_risco_credito",
+										"type": "Expression"
+									},
+									"container": {
+										"value": "@pipeline().parameters.container",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_arquivos_csv",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(pipeline().parameters.base_arq_risco_credito, '.CSV')",
+										"type": "Expression"
+									},
+									"separador": {
+										"value": "@pipeline().globalParameters.separador_padrao",
+										"type": "Expression"
+									},
+									"encoding": {
+										"value": "@pipeline().globalParameters.encoding_padrao",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "espera",
+						"type": "Wait",
+						"dependsOn": [
+							{
+								"activity": "nome_arquivos_pasta",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 120
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"separador_outros_csv": {
+						"type": "string",
+						"defaultValue": ","
+					},
+					"encoding_outros_csv": {
+						"type": "string",
+						"defaultValue": "UTF-8"
+					},
+					"container": {
+						"type": "string",
+						"defaultValue": "raw-files"
+					},
+					"base_arq_latitude_long": {
+						"type": "string",
+						"defaultValue": "Clientes X Latitude e Longitude"
+					},
+					"base_arq_risco_credito": {
+						"type": "string",
+						"defaultValue": "Classificação dos Clientes - Risco de Crédito"
+					},
+					"aba_risco_credito": {
+						"type": "string",
+						"defaultValue": "Dados"
+					}
+				},
+				"variables": {
+					"ano_mes_item_csv": {
+						"type": "String"
+					},
+					"ano_mes_array_csv": {
+						"type": "Array"
+					},
+					"ano_mes_filtro_csv": {
+						"type": "String"
+					},
+					"ano_mes_item_excel": {
+						"type": "String"
+					},
+					"ano_mes_array_excel": {
+						"type": "Array"
+					},
+					"ano_mes_filtro_excel": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_excel_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_cotacao_moeda_api_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "data_ontem",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "data_ontem",
+							"value": {
+								"value": "@formatDateTime(adddays(convertFromUtc(utcNow(), 'E. South America Standard Time'), -1), 'MM-dd-yyyy')",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "para_cada_moeda",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "data_ontem",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@variables('moedas')",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "consulta_api",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 60,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"method": "GET",
+										"headers": {},
+										"url": {
+											"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoMoedaDia(moeda=@moeda,dataCotacao=@dataCotacao)?@moeda=''', item(), '''&@dataCotacao=''', variables('data_ontem'), '''&$filter=contains(tipoBoletim,''', pipeline().parameters.tipo_boletim, ''')&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "testa_valor",
+									"type": "IfCondition",
+									"dependsOn": [
+										{
+											"activity": "consulta_api",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "nome_moeda",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@not(empty(activity('consulta_api').output.value))",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "data_cotacao",
+												"type": "SetVariable",
+												"dependsOn": [],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "data_cotacao",
+													"value": {
+														"value": "@substring(activity('consulta_api').output.value[0]['dataHoraCotacao'], 0, 10)\n\n",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "valor_cotacao",
+												"type": "SetVariable",
+												"dependsOn": [],
+												"policy": {
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"variableName": "valor_compra",
+													"value": {
+														"value": "@string(activity('consulta_api').output.value[0]['cotacaoCompra'])",
+														"type": "Expression"
+													}
+												}
+											},
+											{
+												"name": "insert_dw",
+												"type": "Script",
+												"dependsOn": [
+													{
+														"activity": "data_cotacao",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													},
+													{
+														"activity": "valor_cotacao",
+														"dependencyConditions": [
+															"Succeeded"
+														]
+													}
+												],
+												"policy": {
+													"timeout": "0.00:10:00",
+													"retry": 2,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"linkedServiceName": {
+													"referenceName": "ls_azure_sql_database",
+													"type": "LinkedServiceReference"
+												},
+												"typeProperties": {
+													"scripts": [
+														{
+															"type": "Query",
+															"text": {
+																"value": "@concat('insert into [corporativo].[fato_cotacao_moeda] ([DATA_COTACAO], [SIGLA_MOEDA_BC], [COTACAO]) values (''',variables('data_cotacao'), ''', ''', variables('nome_moeda'), ''', ', variables('valor_compra'), ')')",
+																"type": "Expression"
+															}
+														}
+													],
+													"scriptBlockExecutionTimeout": "02:00:00"
+												}
+											}
+										]
+									}
+								},
+								{
+									"name": "nome_moeda",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "nome_moeda",
+										"value": {
+											"value": "@item()",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"tipo_boletim": {
+						"type": "string",
+						"defaultValue": "Fechamento"
+					}
+				},
+				"variables": {
+					"data_ontem": {
+						"type": "String"
+					},
+					"moedas": {
+						"type": "Array",
+						"defaultValue": [
+							"EUR",
+							"USD",
+							"GBP"
+						]
+					},
+					"nome_moeda": {
+						"type": "String"
+					},
+					"data_cotacao": {
+						"type": "String"
+					},
+					"valor_compra": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server/API"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_cliente_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "insert_update_dw",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dimensao_clientes",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVdimClientes": {},
+									"CSVenderecos": {},
+									"DBdimCliente": {},
+									"CSVriscoCredito": {},
+									"CSVlatitudeLongitude": {},
+									"InsereBD2": {},
+									"AlteraBD1": {},
+									"InsereBD1": {},
+									"AlteraBD2": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dimensao_clientes')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_cliente_sql_primeira')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "primeira_carga_dw",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dimensao_clientes_primeira",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVdimClientes": {},
+									"CSVenderecos": {},
+									"CSVriscoCredito": {},
+									"CSVlatitudeLongitude": {},
+									"InsereBD": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server/Primeira Carga"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dimensao_clientes_primeira')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_evento_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "nome_tabela",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_evento\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_inicio_carga(5)",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "AzureSqlSink",
+								"preCopyScript": {
+									"value": "@concat('TRUNCATE TABLE ', variables('schema'), '.', variables('nome_tabela'))",
+									"type": "Expression"
+								},
+								"writeBehavior": "insert",
+								"sqlWriterUseTableLock": false,
+								"disableMetricsCollection": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "EVENTO",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "EVENTO",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "DESCRICAO_EVENTO",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "DESCRICAO_EVENTO",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									},
+									{
+										"source": {
+											"name": "OPERACAO",
+											"type": "String",
+											"physicalType": "String"
+										},
+										"sink": {
+											"name": "OPERACAO",
+											"type": "String",
+											"physicalType": "nvarchar"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_azure_sql_db_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"schema": {
+										"value": "@variables('schema')",
+										"type": "Expression"
+									},
+									"tabela": {
+										"value": "@variables('nome_tabela')",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					},
+					{
+						"name": "nome_tabela",
+						"type": "SetVariable",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"variableName": "nome_tabela",
+							"value": {
+								"value": "@replace(replace(pipeline().Pipeline, 'pl_', ''), '_sql', '')",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"nome_tabela": {
+						"type": "String"
+					},
+					"schema": {
+						"type": "String",
+						"defaultValue": "faturamento"
+					}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_produto_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "insert_update_dw",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dimensao_produto",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVdimProduto": {},
+									"CSVenderecos": {},
+									"DBdimProduto": {},
+									"InsereBD2": {},
+									"AlteraBD": {},
+									"InsereBD1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dimensao_produto')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_produto_sql_primeira')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "insert_primeira_vez",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dimensao_produto_primeira",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVdimProduto": {},
+									"CSVenderecos": {},
+									"InsereBD": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server/Primeira Carga"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dimensao_produto_primeira')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_vendedor_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "insert_update_dw",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dimensao_vendedor",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVdimVendedor": {},
+									"CSVenderecos": {},
+									"DBdimVendedor": {},
+									"InsereBD2": {},
+									"AlteraBD": {},
+									"InsereBD1": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dimensao_vendedor')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_dimensao_vendedor_sql_primeira')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "insert_primeira_vez",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_dimensao_vendedor_primeira",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"CSVdimVendedor": {},
+									"CSVenderecos": {},
+									"InsereBD": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server/Primeira Carga"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_dimensao_vendedor_primeira')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_exclui_arqs_tabelas-bd_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "nome_arquivos",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": "*",
+									"separador": "*",
+									"encoding": "*"
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "cada_arquivo",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "nome_arquivos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('nome_arquivos').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "nome_arquivo",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "nome_arquivo",
+										"value": {
+											"value": "@item()['name']",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "excluir_arquivo",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "nome_arquivo",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "ds_data_lake_csv_generico",
+											"type": "DatasetReference",
+											"parameters": {
+												"container": {
+													"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+													"type": "Expression"
+												},
+												"nome_arquivo": {
+													"value": "@variables('nome_arquivo')",
+													"type": "Expression"
+												},
+												"separador": "*",
+												"encoding": "*"
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": false,
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"nome_arquivo": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Tarefas/Exclusões"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_exclui_arquivos-csv_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "nome_arquivos",
+						"type": "GetMetadata",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.00:10:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_arquivos_csv",
+										"type": "Expression"
+									},
+									"nome_arquivo": "*",
+									"separador": "*",
+									"encoding": "*"
+								}
+							},
+							"fieldList": [
+								"childItems"
+							],
+							"storeSettings": {
+								"type": "AzureBlobFSReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "cada_arquivo",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "nome_arquivos",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('nome_arquivos').output.childItems",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "nome_arquivo",
+									"type": "SetVariable",
+									"dependsOn": [],
+									"policy": {
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"variableName": "nome_arquivo",
+										"value": {
+											"value": "@item()['name']",
+											"type": "Expression"
+										}
+									}
+								},
+								{
+									"name": "excluir_arquivo",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "nome_arquivo",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.00:10:00",
+										"retry": 3,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "ds_data_lake_csv_generico",
+											"type": "DatasetReference",
+											"parameters": {
+												"container": {
+													"value": "@pipeline().globalParameters.dl_arquivos_csv",
+													"type": "Expression"
+												},
+												"nome_arquivo": {
+													"value": "@variables('nome_arquivo')",
+													"type": "Expression"
+												},
+												"separador": "*",
+												"encoding": "*"
+											}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobFSReadSettings",
+											"recursive": false,
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"variables": {
+					"nome_arquivo": {
+						"type": "String"
+					}
+				},
+				"folder": {
+					"name": "Tarefas/Exclusões"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_fato_faturamento')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "insert_update_dw",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "df_fato_faturamento",
+								"type": "DataFlowReference",
+								"parameters": {
+									"data_inicio_se_null": "toDate('1900-1-1','yyyy-MM-dd')",
+									"data_fim_se_null": "currentDate('GMT-3')"
+								},
+								"datasetParameters": {
+									"CSVfatoFaturamento": {},
+									"DBdimCliente": {},
+									"DBdimProduto": {},
+									"InsereBD": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "None",
+							"cacheSinks": {
+								"firstRowOnly": true
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Azure SQL Server"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/df_fato_faturamento')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_dimensao_cliente_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_cliente\nWHERE\n    dt_desativacao IS NULL",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "COD_CLIENTE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_CLIENTE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DT_DESATIVACAO",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "DT_DESATIVACAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PORTE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PORTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_CIDADE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": {
+										"value": "@pipeline().globalParameters.separador_padrao",
+										"type": "Expression"
+									},
+									"encoding": {
+										"value": "@pipeline().globalParameters.encoding_padrao",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_dimensao_cliente_dl_primeira')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_cliente\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_inicio_carga(6)",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "COD_CLIENTE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_CLIENTE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DT_DESATIVACAO",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "DT_DESATIVACAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PORTE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PORTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_CIDADE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl_primeira', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": {
+										"value": "@pipeline().globalParameters.separador_padrao",
+										"type": "Expression"
+									},
+									"encoding": {
+										"value": "@pipeline().globalParameters.encoding_padrao",
+										"type": "Expression"
+									}
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados/Primeira Carga"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_dimensao_produto_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_produto\nWHERE\n    dt_desativacao IS NULL",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "SKU",
+											"type": "String"
+										},
+										"sink": {
+											"name": "SKU",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PRODUTO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PRODUTO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DT_DESATIVACAO",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "DT_DESATIVACAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CATEGORIA",
+											"type": "String"
+										},
+										"sink": {
+											"name": "CATEGORIA",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ARMAZEM",
+											"type": "String"
+										},
+										"sink": {
+											"name": "ARMAZEM",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_CIDADE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": "@pipeline().globalParameters.separador_padrao",
+									"encoding": "@pipeline().globalParameters.encoding_padrao"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_dimensao_produto_dl_primeira')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_dimensao_produto\nWHERE\n    dt_desativacao IS NULL OR dt_desativacao >= f_dt_inicio_carga(6)",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "SKU",
+											"type": "String"
+										},
+										"sink": {
+											"name": "SKU",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PRODUTO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PRODUTO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DT_DESATIVACAO",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "DT_DESATIVACAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CATEGORIA",
+											"type": "String"
+										},
+										"sink": {
+											"name": "CATEGORIA",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ARMAZEM",
+											"type": "String"
+										},
+										"sink": {
+											"name": "ARMAZEM",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_CIDADE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl_primeira', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": "@pipeline().globalParameters.separador_padrao",
+									"encoding": "@pipeline().globalParameters.encoding_padrao"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados/Primeira Carga"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_dimensao_vendedor_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "COD_VENDEDOR",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_VENDEDOR",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_COMPLETO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_COMPLETO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CARGO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "CARGO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "REGIAO_VENDA",
+											"type": "String"
+										},
+										"sink": {
+											"name": "REGIAO_VENDA",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CIDADE_ATUACAO",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "CIDADE_ATUACAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_SUP_1",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "COD_SUP_1",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_COMP_1",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_COMP_1",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_SUP_2",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "COD_SUP_2",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_COMP_2",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_COMP_2",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_SUP_3",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "COD_SUP_3",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_COMP_3",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_COMP_3",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_SUP_4",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "COD_SUP_4",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_COMP_4",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_COMP_4",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_SUP_5",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "COD_SUP_5",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NOME_COMP_5",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOME_COMP_5",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "V_DIMENSAO_VENDEDOR"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": "@pipeline().globalParameters.separador_padrao",
+									"encoding": "@pipeline().globalParameters.encoding_padrao"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_fato_faturamento_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_fato_faturamento\nWHERE\n    data_emissao >= f_dt_carga_incremental(60)",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "NOTA_FISCAL",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOTA_FISCAL",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DATA_EMISSAO",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "DATA_EMISSAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_EVENTO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "COD_EVENTO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PEDIDO_VENDA",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PEDIDO_VENDA",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_CLIENTE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "SKU_PRODUTO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "SKU_PRODUTO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "UNID",
+											"type": "String"
+										},
+										"sink": {
+											"name": "UNID",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "QUANTIDADE",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "QUANTIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PRECO_UNITARIO",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "PRECO_UNITARIO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COND_FRETE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "COND_FRETE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CUSTO_FRETE_UNIT",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "CUSTO_FRETE_UNIT",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NF_ORIGEM_DEV",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NF_ORIGEM_DEV",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": "@pipeline().globalParameters.separador_padrao",
+									"encoding": "@pipeline().globalParameters.encoding_padrao"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_fato_faturamento_dl_primeira')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"oracleReaderQuery": "SELECT\n    *\nFROM\n    v_fato_faturamento\nWHERE\n    data_emissao >= f_dt_inicio_carga(5)",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "NOTA_FISCAL",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NOTA_FISCAL",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "DATA_EMISSAO",
+											"type": "DateTime"
+										},
+										"sink": {
+											"name": "DATA_EMISSAO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_EVENTO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "COD_EVENTO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PEDIDO_VENDA",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PEDIDO_VENDA",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COD_CLIENTE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CLIENTE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "SKU_PRODUTO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "SKU_PRODUTO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "UNID",
+											"type": "String"
+										},
+										"sink": {
+											"name": "UNID",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "QUANTIDADE",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "QUANTIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PRECO_UNITARIO",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "PRECO_UNITARIO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "COND_FRETE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "COND_FRETE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CUSTO_FRETE_UNIT",
+											"type": "Double"
+										},
+										"sink": {
+											"name": "CUSTO_FRETE_UNIT",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "NF_ORIGEM_DEV",
+											"type": "String"
+										},
+										"sink": {
+											"name": "NF_ORIGEM_DEV",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "*"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl_primeira', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": "@pipeline().globalParameters.separador_padrao",
+									"encoding": "@pipeline().globalParameters.encoding_padrao"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados/Primeira Carga"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pl_v_interm_enderecos_dl')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "copia_salva",
+						"type": "Copy",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 3,
+							"retryIntervalInSeconds": 60,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "OracleSource",
+								"partitionOption": "None",
+								"queryTimeout": "02:00:00"
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "COD_CIDADE",
+											"type": "Decimal"
+										},
+										"sink": {
+											"name": "COD_CIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "CIDADE",
+											"type": "String"
+										},
+										"sink": {
+											"name": "CIDADE",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "ESTADO",
+											"type": "String"
+										},
+										"sink": {
+											"name": "ESTADO",
+											"type": "String",
+											"physicalType": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "PAIS",
+											"type": "String"
+										},
+										"sink": {
+											"name": "PAIS",
+											"type": "String",
+											"physicalType": "String"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "ds_oracle_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"owner": "CONSULTORIA_BI",
+									"view": "V_INTERM_ENDERECOS"
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_data_lake_csv_generico",
+								"type": "DatasetReference",
+								"parameters": {
+									"container": {
+										"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+										"type": "Expression"
+									},
+									"nome_arquivo": {
+										"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl', ''), '.csv')",
+										"type": "Expression"
+									},
+									"separador": "@pipeline().globalParameters.separador_padrao",
+									"encoding": "@pipeline().globalParameters.encoding_padrao"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "Tarefas/Data Lake/Banco de dados"
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_oracle_generico')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_csv_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_dim_cliente')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SK_CLIENTE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COD_CLIENTE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_CLIENTE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PORTE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "RISCO_CREDITO",
+						"type": "nvarchar"
+					},
+					{
+						"name": "SIGLA",
+						"type": "nvarchar"
+					},
+					{
+						"name": "CIDADE",
+						"type": "nvarchar"
+					},
+					{
+						"name": "ESTADO",
+						"type": "nvarchar"
+					},
+					{
+						"name": "PAIS",
+						"type": "nvarchar"
+					},
+					{
+						"name": "LATITUDE",
+						"type": "decimal",
+						"precision": 6,
+						"scale": 4
+					},
+					{
+						"name": "LONGITUDE",
+						"type": "decimal",
+						"precision": 6,
+						"scale": 4
+					},
+					{
+						"name": "ATIVO",
+						"type": "char"
+					},
+					{
+						"name": "DT_INICIO",
+						"type": "date"
+					},
+					{
+						"name": "DT_FIM",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "comercial",
+					"table": "dimensao_cliente"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_dim_produto')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SK_PRODUTO",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SKU",
+						"type": "varchar"
+					},
+					{
+						"name": "PRODUTO",
+						"type": "varchar"
+					},
+					{
+						"name": "CATEGORIA",
+						"type": "varchar"
+					},
+					{
+						"name": "ARMAZEM",
+						"type": "varchar"
+					},
+					{
+						"name": "CIDADE_ARMAZEM",
+						"type": "varchar"
+					},
+					{
+						"name": "ATIVO",
+						"type": "char"
+					},
+					{
+						"name": "DT_INICIO",
+						"type": "date"
+					},
+					{
+						"name": "DT_FIM",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "comercial",
+					"table": "dimensao_produto"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_dim_vendedor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "SK_VENDEDOR",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "COD_VENDEDOR",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMPLETO",
+						"type": "varchar"
+					},
+					{
+						"name": "CARGO",
+						"type": "varchar"
+					},
+					{
+						"name": "REGIAO_VENDA",
+						"type": "varchar"
+					},
+					{
+						"name": "CIDADE_ATUACAO",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_1",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_1",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_2",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_2",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_3",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_3",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_4",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_4",
+						"type": "varchar"
+					},
+					{
+						"name": "COD_SUP_5",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "NOME_COMP_5",
+						"type": "varchar"
+					},
+					{
+						"name": "ATIVO",
+						"type": "char"
+					},
+					{
+						"name": "DT_INICIO",
+						"type": "date"
+					},
+					{
+						"name": "DT_FIM",
+						"type": "date"
+					}
+				],
+				"typeProperties": {
+					"schema": "comercial",
+					"table": "dimensao_vendedor"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_fato_faturamento')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Azure SQL Server/Específicos"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "NOTA_FISCAL",
+						"type": "nvarchar"
+					},
+					{
+						"name": "DATA_EMISSAO",
+						"type": "date"
+					},
+					{
+						"name": "COD_EVENTO",
+						"type": "char"
+					},
+					{
+						"name": "PEDIDO_VENDA",
+						"type": "varchar"
+					},
+					{
+						"name": "SK_CLIENTE",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SK_PRODUTO",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "UNID",
+						"type": "varchar"
+					},
+					{
+						"name": "QUANTIDADE",
+						"type": "decimal",
+						"precision": 16,
+						"scale": 8
+					},
+					{
+						"name": "PRECO_UNITARIO",
+						"type": "decimal",
+						"precision": 16,
+						"scale": 4
+					},
+					{
+						"name": "COND_FRETE",
+						"type": "char"
+					},
+					{
+						"name": "CUSTO_FRETE_UNIT",
+						"type": "decimal",
+						"precision": 16,
+						"scale": 4
+					},
+					{
+						"name": "NF_ORIGEM_DEV",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": "faturamento",
+					"table": "fato_faturamento"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_azure_sql_db_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_azure_sql_database",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"schema": {
+						"type": "string"
+					},
+					"tabela": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Azure SQL Server"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().schema",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().tabela",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_azure_sql_database')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_dim_cliente')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "dimensao_cliente.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_dim_produto')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "dimensao_produto.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_dim_vendedor')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "dimensao_vendedor.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_enderecos')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "interm_enderecos.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_bd_fato_faturamento')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "fato_faturamento.csv",
+						"fileSystem": "tabelas-bd"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_csv_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"nome_arquivo": {
+						"type": "string"
+					},
+					"separador": {
+						"type": "string"
+					},
+					"encoding": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake/Genéricos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().nome_arquivo",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"columnDelimiter": {
+						"value": "@dataset().separador",
+						"type": "Expression"
+					},
+					"encodingName": {
+						"value": "@dataset().encoding",
+						"type": "Expression"
+					},
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_excel_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"nome_arquivo": {
+						"type": "string"
+					},
+					"nome_aba": {
+						"type": "string"
+					},
+					"container": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake/Genéricos"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": {
+						"value": "@dataset().nome_aba",
+						"type": "Expression"
+					},
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().nome_arquivo",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_json_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"nome_arquivo": {
+						"type": "string"
+					},
+					"encoding": {
+						"type": "string",
+						"defaultValue": "UTF-8"
+					}
+				},
+				"folder": {
+					"name": "Data Lake/Genéricos"
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().nome_arquivo",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"encodingName": {
+						"value": "@dataset().encoding",
+						"type": "Expression"
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_latitude_long_clientes')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Clientes X Latitude e Longitude.CSV",
+						"fileSystem": "arquivos-csv"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_parquet_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"container": {
+						"type": "string"
+					},
+					"nome_arquivo": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "Data Lake/Genéricos"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().nome_arquivo",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_data_lake_risco_credito')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_datalake",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "Data Lake/Específicos"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": "Classificação dos Clientes - Risco de Crédito.CSV",
+						"fileSystem": "arquivos-csv"
+					},
+					"columnDelimiter": "|",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_datalake')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_oracle_generico')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_oracle_servidor",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"owner": {
+						"type": "string",
+						"defaultValue": "CONSULTORIA_BI"
+					},
+					"view": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "BD Oracle"
+				},
+				"annotations": [],
+				"type": "OracleTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().owner",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().view",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_oracle_servidor')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ds_rest_api_bc_dolar')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "ls_rest_api_aberta_generico",
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"url": {
+							"value": "@concat('https://olinda.bcb.gov.br/olinda/servico/PTAX/versao/v1/odata/CotacaoDolarDia(dataCotacao=@dataCotacao)?@dataCotacao=''', dataset().data, '''&$format=json&$select=cotacaoCompra,dataHoraCotacao')",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"data": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "APIs"
+				},
+				"annotations": [],
+				"type": "RestResource",
+				"typeProperties": {},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_rest_api_aberta_generico')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_azure_sql_database')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDatabase",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('ls_azure_sql_database_properties_typeProperties_connectionString_secretName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_vault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_datalake')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobFS",
+				"typeProperties": {
+					"url": "[parameters('ls_datalake_properties_typeProperties_url')]",
+					"accountKey": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "dl-key-consultoria-bi"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_vault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_key_vault')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
 			"properties": {
 				"annotations": [],
 				"type": "AzureKeyVault",
 				"typeProperties": {
-					"baseUrl": "[parameters('AzureKeyVault_properties_typeProperties_baseUrl')]"
+					"baseUrl": "[parameters('ls_key_vault_properties_typeProperties_baseUrl')]"
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_oracle_servidor')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "Oracle",
+				"typeProperties": {
+					"connectionString": "[parameters('ls_oracle_servidor_connectionString')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "ls_key_vault",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "oracle-consultoria-bi"
+					}
+				},
+				"connectVia": {
+					"referenceName": "ir-servidor",
+					"type": "IntegrationRuntimeReference"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/integrationRuntimes/ir-servidor')]",
+				"[concat(variables('factoryId'), '/linkedServices/ls_key_vault')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ls_rest_api_aberta_generico')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"parameters": {
+					"url": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "RestService",
+				"typeProperties": {
+					"url": "[parameters('ls_rest_api_aberta_generico_properties_typeProperties_url')]",
+					"enableServerCertificateValidation": true,
+					"authenticationType": "Anonymous"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_schedule_padrao')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "execucao_diaria",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "ScheduleTrigger",
+				"typeProperties": {
+					"recurrence": {
+						"frequency": "Day",
+						"interval": 1,
+						"startTime": "2024-03-11T05:00:00",
+						"timeZone": "E. South America Standard Time",
+						"schedule": {
+							"minutes": [
+								0
+							],
+							"hours": [
+								5
+							]
+						}
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/execucao_diaria')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ir-servidor')]",
+			"type": "Microsoft.DataFactory/factories/integrationRuntimes",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "SelfHosted",
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dimensao_clientes')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "CSVdimClientes",
+							"description": "Import data from ds_data_lake_bd_dim_clientes"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_enderecos",
+								"type": "DatasetReference"
+							},
+							"name": "CSVenderecos"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "DBdimCliente"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_risco_credito",
+								"type": "DatasetReference"
+							},
+							"name": "CSVriscoCredito"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_latitude_long_clientes",
+								"type": "DatasetReference"
+							},
+							"name": "CSVlatitudeLongitude"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD2"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "AlteraBD1"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD1"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "AlteraBD2"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DadosAlteradosSCD2"
+						},
+						{
+							"name": "ColunaDtFim"
+						},
+						{
+							"name": "Condicao1"
+						},
+						{
+							"name": "LeftJoinEnderecos"
+						},
+						{
+							"name": "DadosAtualizados"
+						},
+						{
+							"name": "SelecionaColunas"
+						},
+						{
+							"name": "DadosNovos"
+						},
+						{
+							"name": "LeftJoinLatitudeLongitude"
+						},
+						{
+							"name": "LeftJoinRiscoCredito"
+						},
+						{
+							"name": "ClassificaCodCliente1"
+						},
+						{
+							"name": "ClassificaCodCliente2"
+						},
+						{
+							"name": "DadosAlteradosSCD1"
+						},
+						{
+							"name": "Condicao2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          DT_DESATIVACAO as string,",
+						"          PORTE as string,",
+						"          COD_CIDADE as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVdimClientes",
+						"source(output(",
+						"          COD_CIDADE as integer,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVenderecos",
+						"source(output(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          PORTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          LATITUDE as float,",
+						"          LONGITUDE as float,",
+						"          ATIVO as string,",
+						"          DT_FIM as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n       [SK_CLIENTE] \\n      ,[COD_CLIENTE]\\n      ,[NOME_CLIENTE]\\n      ,[PORTE]\\n      ,[RISCO_CREDITO]\\n      ,[SIGLA]\\n      ,[CIDADE]\\n      ,[ESTADO]\\n      ,[LATITUDE]\\n      ,[LONGITUDE]\\n      ,[ATIVO]\\n      ,[DT_FIM]\\nFROM [comercial].[dimensao_cliente]\\nWHERE \\n     [ATIVO] = \\'S\\'',",
+						"     format: 'query') ~> DBdimCliente",
+						"source(output(",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVriscoCredito",
+						"source(output(",
+						"          COD_CLIENTE as integer,",
+						"          LATITUDE as float,",
+						"          LONGITUDE as float",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVlatitudeLongitude",
+						"DBdimCliente, SelecionaColunas exists(DBdimCliente@COD_CLIENTE == SelecionaColunas@COD_CLIENTE && (     \r",
+						"     DBdimCliente@NOME_CLIENTE != SelecionaColunas@NOME_CLIENTE || \r",
+						"     DBdimCliente@PORTE != SelecionaColunas@PORTE || \r",
+						"     DBdimCliente@RISCO_CREDITO != SelecionaColunas@RISCO_CREDITO ||\r",
+						"     DBdimCliente@CIDADE != SelecionaColunas@CIDADE || \r",
+						"     DBdimCliente@ESTADO != SelecionaColunas@ESTADO\r",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAlteradosSCD2",
+						"DadosAlteradosSCD2 derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
+						"          ATIVO = 'N') ~> ColunaDtFim",
+						"ColunaDtFim alterRow(updateIf(1==1)) ~> Condicao1",
+						"CSVdimClientes, CSVenderecos join(CSVdimClientes@COD_CIDADE == CSVenderecos@COD_CIDADE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinEnderecos",
+						"SelecionaColunas, DBdimCliente exists(DBdimCliente@COD_CLIENTE == SelecionaColunas@COD_CLIENTE && (     \r",
+						"     DBdimCliente@NOME_CLIENTE != SelecionaColunas@NOME_CLIENTE || \r",
+						"     DBdimCliente@PORTE != SelecionaColunas@PORTE || \r",
+						"     DBdimCliente@RISCO_CREDITO != SelecionaColunas@RISCO_CREDITO ||\r",
+						"     DBdimCliente@CIDADE != SelecionaColunas@CIDADE || \r",
+						"     DBdimCliente@ESTADO != SelecionaColunas@ESTADO\r",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAtualizados",
+						"LeftJoinRiscoCredito select(mapColumn(",
+						"          COD_CLIENTE = CSVdimClientes@COD_CLIENTE,",
+						"          NOME_CLIENTE = CSVdimClientes@NOME_CLIENTE,",
+						"          PORTE,",
+						"          RISCO_CREDITO,",
+						"          SIGLA,",
+						"          CIDADE,",
+						"          ESTADO,",
+						"          PAIS,",
+						"          LATITUDE,",
+						"          LONGITUDE",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+						"SelecionaColunas, DBdimCliente exists(SelecionaColunas@COD_CLIENTE == DBdimCliente@COD_CLIENTE,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> DadosNovos",
+						"LeftJoinEnderecos, CSVlatitudeLongitude join(CSVdimClientes@COD_CLIENTE == CSVlatitudeLongitude@COD_CLIENTE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinLatitudeLongitude",
+						"LeftJoinLatitudeLongitude, CSVriscoCredito join(CSVdimClientes@COD_CLIENTE == CSVriscoCredito@COD_CLIENTE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinRiscoCredito",
+						"DadosNovos sort(asc(COD_CLIENTE, false)) ~> ClassificaCodCliente1",
+						"DadosAtualizados sort(asc(COD_CLIENTE, true)) ~> ClassificaCodCliente2",
+						"DBdimCliente, SelecionaColunas exists(DBdimCliente@COD_CLIENTE == SelecionaColunas@COD_CLIENTE && (     \r",
+						"     DBdimCliente@LATITUDE != SelecionaColunas@LATITUDE ||\r",
+						"    DBdimCliente@LONGITUDE != SelecionaColunas@LONGITUDE\r",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAlteradosSCD1",
+						"DadosAlteradosSCD1 alterRow(updateIf(1==1)) ~> Condicao2",
+						"ClassificaCodCliente2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          PORTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string,",
+						"          LATITUDE as decimal(6,4),",
+						"          LONGITUDE as decimal(6,4),",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          COD_CLIENTE,",
+						"          NOME_CLIENTE,",
+						"          PORTE,",
+						"          RISCO_CREDITO,",
+						"          SIGLA,",
+						"          CIDADE,",
+						"          ESTADO,",
+						"          PAIS,",
+						"          LATITUDE,",
+						"          LONGITUDE",
+						"     )) ~> InsereBD2",
+						"Condicao1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          PORTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string,",
+						"          LATITUDE as decimal(6,4),",
+						"          LONGITUDE as decimal(6,4),",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     keys:['SK_CLIENTE'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SK_CLIENTE,",
+						"          ATIVO,",
+						"          DT_FIM",
+						"     )) ~> AlteraBD1",
+						"ClassificaCodCliente1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          PORTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string,",
+						"          LATITUDE as decimal(6,4),",
+						"          LONGITUDE as decimal(6,4),",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          COD_CLIENTE,",
+						"          NOME_CLIENTE,",
+						"          PORTE,",
+						"          RISCO_CREDITO,",
+						"          SIGLA,",
+						"          CIDADE,",
+						"          ESTADO,",
+						"          PAIS,",
+						"          LATITUDE,",
+						"          LONGITUDE",
+						"     )) ~> InsereBD1",
+						"Condicao2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          PORTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string,",
+						"          LATITUDE as decimal(6,4),",
+						"          LONGITUDE as decimal(6,4),",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     keys:['SK_CLIENTE'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SK_CLIENTE,",
+						"          LATITUDE,",
+						"          LONGITUDE",
+						"     )) ~> AlteraBD2"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_dim_cliente')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_enderecos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_cliente')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_risco_credito')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_latitude_long_clientes')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dimensao_clientes_primeira')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "Primeira Carga"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "CSVdimClientes",
+							"description": "Import data from ds_data_lake_bd_dim_clientes"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_enderecos",
+								"type": "DatasetReference"
+							},
+							"name": "CSVenderecos"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_risco_credito",
+								"type": "DatasetReference"
+							},
+							"name": "CSVriscoCredito"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_latitude_long_clientes",
+								"type": "DatasetReference"
+							},
+							"name": "CSVlatitudeLongitude"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LeftJoinEnderecos"
+						},
+						{
+							"name": "SelecionaColunas"
+						},
+						{
+							"name": "LeftJoinLatitudeLongitude"
+						},
+						{
+							"name": "LeftJoinRiscoCredito"
+						},
+						{
+							"name": "ClassificaCodCliente"
+						},
+						{
+							"name": "ColunaDTinicioNula"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          DT_DESATIVACAO as string,",
+						"          PORTE as string,",
+						"          COD_CIDADE as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVdimClientes",
+						"source(output(",
+						"          COD_CIDADE as integer,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVenderecos",
+						"source(output(",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVriscoCredito",
+						"source(output(",
+						"          COD_CLIENTE as integer,",
+						"          LATITUDE as double,",
+						"          LONGITUDE as double",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVlatitudeLongitude",
+						"CSVdimClientes, CSVenderecos join(CSVdimClientes@COD_CIDADE == CSVenderecos@COD_CIDADE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinEnderecos",
+						"LeftJoinRiscoCredito select(mapColumn(",
+						"          COD_CLIENTE = CSVdimClientes@COD_CLIENTE,",
+						"          NOME_CLIENTE = CSVdimClientes@NOME_CLIENTE,",
+						"          PORTE,",
+						"          RISCO_CREDITO,",
+						"          SIGLA,",
+						"          CIDADE,",
+						"          ESTADO,",
+						"          PAIS,",
+						"          LATITUDE,",
+						"          LONGITUDE",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+						"LeftJoinEnderecos, CSVlatitudeLongitude join(CSVdimClientes@COD_CLIENTE == CSVlatitudeLongitude@COD_CLIENTE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinLatitudeLongitude",
+						"LeftJoinLatitudeLongitude, CSVriscoCredito join(CSVdimClientes@COD_CLIENTE == CSVriscoCredito@COD_CLIENTE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinRiscoCredito",
+						"ColunaDTinicioNula sort(asc(COD_CLIENTE, false)) ~> ClassificaCodCliente",
+						"SelecionaColunas derive(DT_INICIO = '') ~> ColunaDTinicioNula",
+						"ClassificaCodCliente sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          NOME_CLIENTE as string,",
+						"          PORTE as string,",
+						"          RISCO_CREDITO as string,",
+						"          SIGLA as string,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string,",
+						"          LATITUDE as decimal(6,4),",
+						"          LONGITUDE as decimal(6,4),",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          COD_CLIENTE,",
+						"          NOME_CLIENTE,",
+						"          PORTE,",
+						"          RISCO_CREDITO,",
+						"          SIGLA,",
+						"          CIDADE,",
+						"          ESTADO,",
+						"          PAIS,",
+						"          LATITUDE,",
+						"          LONGITUDE,",
+						"          DT_INICIO",
+						"     )) ~> InsereBD"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_dim_cliente')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_enderecos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_risco_credito')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_latitude_long_clientes')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_cliente')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dimensao_produto')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "CSVdimProduto",
+							"description": "Import data from ds_data_lake_bd_dim_produto"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_enderecos",
+								"type": "DatasetReference"
+							},
+							"name": "CSVenderecos"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "DBdimProduto",
+							"description": "Import data from ds_azure_sql_db_dim_produto"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD2"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "AlteraBD"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DadosAlterados"
+						},
+						{
+							"name": "ColunaDtFim"
+						},
+						{
+							"name": "Condicao"
+						},
+						{
+							"name": "LeftJoinEnderecos"
+						},
+						{
+							"name": "DadosAtualizados"
+						},
+						{
+							"name": "SelecionaColunas"
+						},
+						{
+							"name": "DadosNovos"
+						},
+						{
+							"name": "ClassifcaSKU1"
+						},
+						{
+							"name": "ClassificaSKU2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          DT_DESATIVACAO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          COD_CIDADE as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVdimProduto",
+						"source(output(",
+						"          COD_CIDADE as integer,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVenderecos",
+						"source(output(",
+						"          SK_PRODUTO as integer,",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          CIDADE_ARMAZEM as string,",
+						"          ATIVO as string,",
+						"          DT_FIM as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT\\n      [SK_PRODUTO]\\n      ,[SKU]\\n      ,[PRODUTO]\\n      ,[CATEGORIA]\\n      ,[ARMAZEM]\\n      ,[CIDADE_ARMAZEM]\\n      ,[ATIVO]\\n      ,[DT_FIM]\\nFROM [comercial].[dimensao_produto]\\nWHERE \\n       [ATIVO] = \\'S\\'',",
+						"     format: 'query') ~> DBdimProduto",
+						"DBdimProduto, SelecionaColunas exists(DBdimProduto@SKU == SelecionaColunas@SKU && (\r",
+						"     DBdimProduto@PRODUTO != SelecionaColunas@PRODUTO || \r",
+						"     DBdimProduto@CATEGORIA != SelecionaColunas@CATEGORIA || \r",
+						"     DBdimProduto@ARMAZEM != SelecionaColunas@ARMAZEM\r",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAlterados",
+						"DadosAlterados derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
+						"          ATIVO = 'N') ~> ColunaDtFim",
+						"ColunaDtFim alterRow(updateIf(1==1)) ~> Condicao",
+						"CSVdimProduto, CSVenderecos join(CSVdimProduto@COD_CIDADE == CSVenderecos@COD_CIDADE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinEnderecos",
+						"SelecionaColunas, DBdimProduto exists(DBdimProduto@SKU == SelecionaColunas@SKU && (",
+						"     DBdimProduto@PRODUTO != SelecionaColunas@PRODUTO || ",
+						"     DBdimProduto@CATEGORIA != SelecionaColunas@CATEGORIA || ",
+						"     DBdimProduto@ARMAZEM != SelecionaColunas@ARMAZEM",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAtualizados",
+						"LeftJoinEnderecos select(mapColumn(",
+						"          SKU,",
+						"          PRODUTO,",
+						"          CATEGORIA,",
+						"          ARMAZEM,",
+						"          CIDADE_ARMAZENAGEM = CIDADE",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+						"SelecionaColunas, DBdimProduto exists(SelecionaColunas@SKU == DBdimProduto@SKU,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> DadosNovos",
+						"DadosNovos sort(asc(toInteger(substring(SKU, 5, 9)), false)) ~> ClassifcaSKU1",
+						"DadosAtualizados sort(asc(toInteger(substring(SKU, 5, 9)), false)) ~> ClassificaSKU2",
+						"ClassificaSKU2 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_PRODUTO as integer,",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          CIDADE_ARMAZEM as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SKU,",
+						"          PRODUTO,",
+						"          CATEGORIA,",
+						"          ARMAZEM,",
+						"          CIDADE_ARMAZEM = CIDADE_ARMAZENAGEM",
+						"     )) ~> InsereBD2",
+						"Condicao sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_PRODUTO as integer,",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          CIDADE_ARMAZEM as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     keys:['SK_PRODUTO'],",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SK_PRODUTO,",
+						"          ATIVO,",
+						"          DT_FIM",
+						"     )) ~> AlteraBD",
+						"ClassifcaSKU1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_PRODUTO as integer,",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          CIDADE_ARMAZEM as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SKU,",
+						"          PRODUTO,",
+						"          CATEGORIA,",
+						"          ARMAZEM,",
+						"          CIDADE_ARMAZEM = CIDADE_ARMAZENAGEM",
+						"     )) ~> InsereBD1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_dim_produto')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_enderecos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_produto')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dimensao_produto_primeira')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "Primeira Carga"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "CSVdimProduto",
+							"description": "Import data from ds_data_lake_bd_dim_produto"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_enderecos",
+								"type": "DatasetReference"
+							},
+							"name": "CSVenderecos"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LeftJoinEnderecos"
+						},
+						{
+							"name": "SelecionaColunas"
+						},
+						{
+							"name": "ClassifcaSKU"
+						},
+						{
+							"name": "DTinicioNula"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          DT_DESATIVACAO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          COD_CIDADE as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVdimProduto",
+						"source(output(",
+						"          COD_CIDADE as integer,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVenderecos",
+						"CSVdimProduto, CSVenderecos join(CSVdimProduto@COD_CIDADE == CSVenderecos@COD_CIDADE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinEnderecos",
+						"LeftJoinEnderecos select(mapColumn(",
+						"          SKU,",
+						"          PRODUTO,",
+						"          CATEGORIA,",
+						"          ARMAZEM,",
+						"          CIDADE_ARMAZENAGEM = CIDADE",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+						"DTinicioNula sort(asc(toInteger(substring(SKU, 5, 9)), false)) ~> ClassifcaSKU",
+						"SelecionaColunas derive(DT_INICIO = '') ~> DTinicioNula",
+						"ClassifcaSKU sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_PRODUTO as integer,",
+						"          SKU as string,",
+						"          PRODUTO as string,",
+						"          CATEGORIA as string,",
+						"          ARMAZEM as string,",
+						"          CIDADE_ARMAZEM as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SKU,",
+						"          PRODUTO,",
+						"          CATEGORIA,",
+						"          ARMAZEM,",
+						"          CIDADE_ARMAZEM = CIDADE_ARMAZENAGEM,",
+						"          DT_INICIO",
+						"     )) ~> InsereBD"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_dim_produto')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_enderecos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_produto')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dimensao_vendedor')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "CSVdimVendedor"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_enderecos",
+								"type": "DatasetReference"
+							},
+							"name": "CSVenderecos"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "DBdimVendedor"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD2"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "AlteraBD"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "DadosAlterados"
+						},
+						{
+							"name": "ColunaDtFim"
+						},
+						{
+							"name": "Condicao"
+						},
+						{
+							"name": "LeftJoinEnderecos"
+						},
+						{
+							"name": "DadosAtualizados"
+						},
+						{
+							"name": "SelecionaColunas"
+						},
+						{
+							"name": "DadosNovos"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as integer,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVdimVendedor",
+						"source(output(",
+						"          COD_CIDADE as integer,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVenderecos",
+						"source(output(",
+						"          SK_VENDEDOR as integer,",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as string,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string,",
+						"          ATIVO as string,",
+						"          DT_FIM as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT \\n    [SK_VENDEDOR]\\n    ,[COD_VENDEDOR]\\n    ,[NOME_COMPLETO]\\n    ,[CARGO]\\n    ,[REGIAO_VENDA]\\n    ,[CIDADE_ATUACAO]\\n    ,[COD_SUP_1]\\n    ,[NOME_COMP_1]\\n    ,[COD_SUP_2]\\n    ,[NOME_COMP_2]\\n    ,[COD_SUP_3]\\n    ,[NOME_COMP_3]\\n    ,[COD_SUP_4]\\n    ,[NOME_COMP_4]\\n    ,[COD_SUP_5]\\n    ,[NOME_COMP_5]\\n    ,[ATIVO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_vendedor]\\nWHERE\\n     [ATIVO] = \\'S\\'',",
+						"     format: 'query') ~> DBdimVendedor",
+						"DBdimVendedor, SelecionaColunas exists(DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (\r",
+						"     DBdimVendedor@CARGO != SelecionaColunas@CARGO || \r",
+						"     DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || \r",
+						"     DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO ||\r",
+						"     DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || \r",
+						"     DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || \r",
+						"     DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || \r",
+						"     DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || \r",
+						"     DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5\r",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAlterados",
+						"DadosAlterados derive(DT_FIM = addDays(currentDate('GMT-3'), -1),",
+						"          ATIVO = 'N') ~> ColunaDtFim",
+						"ColunaDtFim alterRow(updateIf(1==1)) ~> Condicao",
+						"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinEnderecos",
+						"SelecionaColunas, DBdimVendedor exists(DBdimVendedor@COD_VENDEDOR == SelecionaColunas@COD_VENDEDOR && (",
+						"     DBdimVendedor@CARGO != SelecionaColunas@CARGO || ",
+						"     DBdimVendedor@REGIAO_VENDA != SelecionaColunas@REGIAO_VENDA || ",
+						"     DBdimVendedor@CIDADE_ATUACAO != SelecionaColunas@CIDADE_ATUACAO ||",
+						"     DBdimVendedor@COD_SUP_1 != SelecionaColunas@COD_SUP_1 || ",
+						"     DBdimVendedor@COD_SUP_2 != SelecionaColunas@COD_SUP_2 || ",
+						"     DBdimVendedor@COD_SUP_3 != SelecionaColunas@COD_SUP_3 || ",
+						"     DBdimVendedor@COD_SUP_4 != SelecionaColunas@COD_SUP_4 || ",
+						"     DBdimVendedor@COD_SUP_5 != SelecionaColunas@COD_SUP_5",
+						"),",
+						"     negate:false,",
+						"     broadcast: 'auto')~> DadosAtualizados",
+						"LeftJoinEnderecos select(mapColumn(",
+						"          COD_VENDEDOR,",
+						"          NOME_COMPLETO,",
+						"          CARGO,",
+						"          REGIAO_VENDA,",
+						"          CIDADE_ATUACAO = CIDADE,",
+						"          COD_SUP_1,",
+						"          NOME_COMP_1,",
+						"          COD_SUP_2,",
+						"          NOME_COMP_2,",
+						"          COD_SUP_3,",
+						"          NOME_COMP_3,",
+						"          COD_SUP_4,",
+						"          NOME_COMP_4,",
+						"          COD_SUP_5,",
+						"          NOME_COMP_5",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+						"SelecionaColunas, DBdimVendedor exists(SelecionaColunas@COD_VENDEDOR == DBdimVendedor@COD_VENDEDOR,",
+						"     negate:true,",
+						"     broadcast: 'auto')~> DadosNovos",
+						"DadosAtualizados sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_VENDEDOR as integer,",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as string,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 2,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          COD_VENDEDOR,",
+						"          NOME_COMPLETO,",
+						"          CARGO,",
+						"          REGIAO_VENDA,",
+						"          CIDADE_ATUACAO,",
+						"          COD_SUP_1,",
+						"          NOME_COMP_1,",
+						"          COD_SUP_2,",
+						"          NOME_COMP_2,",
+						"          COD_SUP_3,",
+						"          NOME_COMP_3,",
+						"          COD_SUP_4,",
+						"          NOME_COMP_4,",
+						"          COD_SUP_5,",
+						"          NOME_COMP_5",
+						"     )) ~> InsereBD2",
+						"Condicao sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_VENDEDOR as integer,",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as string,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     keys:['SK_VENDEDOR'],",
+						"     format: 'table',",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 3,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          SK_VENDEDOR,",
+						"          ATIVO,",
+						"          DT_FIM",
+						"     )) ~> AlteraBD",
+						"DadosNovos sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_VENDEDOR as integer,",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as string,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          COD_VENDEDOR,",
+						"          NOME_COMPLETO,",
+						"          CARGO,",
+						"          REGIAO_VENDA,",
+						"          CIDADE_ATUACAO,",
+						"          COD_SUP_1,",
+						"          NOME_COMP_1,",
+						"          COD_SUP_2,",
+						"          NOME_COMP_2,",
+						"          COD_SUP_3,",
+						"          NOME_COMP_3,",
+						"          COD_SUP_4,",
+						"          NOME_COMP_4,",
+						"          COD_SUP_5,",
+						"          NOME_COMP_5",
+						"     )) ~> InsereBD1"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_dim_vendedor')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_enderecos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_vendedor')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_dimensao_vendedor_primeira')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "Primeira Carga"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "CSVdimVendedor"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_enderecos",
+								"type": "DatasetReference"
+							},
+							"name": "CSVenderecos"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_vendedor",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD"
+						}
+					],
+					"transformations": [
+						{
+							"name": "LeftJoinEnderecos"
+						},
+						{
+							"name": "SelecionaColunas"
+						},
+						{
+							"name": "DTinicioNula"
+						},
+						{
+							"name": "ClassificaVendedor"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as integer,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVdimVendedor",
+						"source(output(",
+						"          COD_CIDADE as integer,",
+						"          CIDADE as string,",
+						"          ESTADO as string,",
+						"          PAIS as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVenderecos",
+						"CSVdimVendedor, CSVenderecos join(CIDADE_ATUACAO == COD_CIDADE,",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> LeftJoinEnderecos",
+						"LeftJoinEnderecos select(mapColumn(",
+						"          COD_VENDEDOR,",
+						"          NOME_COMPLETO,",
+						"          CARGO,",
+						"          REGIAO_VENDA,",
+						"          CIDADE_ATUACAO = CIDADE,",
+						"          COD_SUP_1,",
+						"          NOME_COMP_1,",
+						"          COD_SUP_2,",
+						"          NOME_COMP_2,",
+						"          COD_SUP_3,",
+						"          NOME_COMP_3,",
+						"          COD_SUP_4,",
+						"          NOME_COMP_4,",
+						"          COD_SUP_5,",
+						"          NOME_COMP_5",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+						"SelecionaColunas derive(DT_INICIO = '') ~> DTinicioNula",
+						"DTinicioNula sort(asc(COD_VENDEDOR, true)) ~> ClassificaVendedor",
+						"ClassificaVendedor sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          SK_VENDEDOR as integer,",
+						"          COD_VENDEDOR as integer,",
+						"          NOME_COMPLETO as string,",
+						"          CARGO as string,",
+						"          REGIAO_VENDA as string,",
+						"          CIDADE_ATUACAO as string,",
+						"          COD_SUP_1 as integer,",
+						"          NOME_COMP_1 as string,",
+						"          COD_SUP_2 as integer,",
+						"          NOME_COMP_2 as string,",
+						"          COD_SUP_3 as integer,",
+						"          NOME_COMP_3 as string,",
+						"          COD_SUP_4 as integer,",
+						"          NOME_COMP_4 as string,",
+						"          COD_SUP_5 as integer,",
+						"          NOME_COMP_5 as string,",
+						"          ATIVO as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     saveOrder: 1,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          COD_VENDEDOR,",
+						"          NOME_COMPLETO,",
+						"          CARGO,",
+						"          REGIAO_VENDA,",
+						"          CIDADE_ATUACAO,",
+						"          COD_SUP_1,",
+						"          NOME_COMP_1,",
+						"          COD_SUP_2,",
+						"          NOME_COMP_2,",
+						"          COD_SUP_3,",
+						"          NOME_COMP_3,",
+						"          COD_SUP_4,",
+						"          NOME_COMP_4,",
+						"          COD_SUP_5,",
+						"          NOME_COMP_5,",
+						"          DT_INICIO",
+						"     )) ~> InsereBD"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_dim_vendedor')]",
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_enderecos')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_vendedor')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_fato_faturamento')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_data_lake_bd_fato_faturamento",
+								"type": "DatasetReference"
+							},
+							"name": "CSVfatoFaturamento"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_cliente",
+								"type": "DatasetReference"
+							},
+							"name": "DBdimCliente"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_dim_produto",
+								"type": "DatasetReference"
+							},
+							"name": "DBdimProduto"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_azure_sql_db_fato_faturamento",
+								"type": "DatasetReference"
+							},
+							"name": "InsereBD"
+						}
+					],
+					"transformations": [
+						{
+							"name": "JoinClienteSCD"
+						},
+						{
+							"name": "SelecionaColunas1"
+						},
+						{
+							"name": "JoinProdutoSCD"
+						},
+						{
+							"name": "SelecionaColunas2"
+						},
+						{
+							"name": "ClassificaDatas"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     data_inicio_se_null as date (toDate('1900-1-1','yyyy-MM-dd')),",
+						"     data_fim_se_null as date (currentDate('GMT-3'))",
+						"}",
+						"source(output(",
+						"          NOTA_FISCAL as string,",
+						"          DATA_EMISSAO as date,",
+						"          COD_EVENTO as string,",
+						"          PEDIDO_VENDA as string,",
+						"          COD_CLIENTE as integer,",
+						"          SKU_PRODUTO as string,",
+						"          UNID as string,",
+						"          QUANTIDADE as float,",
+						"          PRECO_UNITARIO as float,",
+						"          COND_FRETE as string,",
+						"          CUSTO_FRETE_UNIT as float,",
+						"          NF_ORIGEM_DEV as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     inferDriftedColumnTypes: true,",
+						"     ignoreNoFilesFound: false) ~> CSVfatoFaturamento",
+						"source(output(",
+						"          SK_CLIENTE as integer,",
+						"          COD_CLIENTE as integer,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT \\n    [SK_CLIENTE]\\n    ,[COD_CLIENTE]\\n    ,[DT_INICIO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_cliente]',",
+						"     format: 'query') ~> DBdimCliente",
+						"source(output(",
+						"          SK_PRODUTO as integer,",
+						"          SKU as string,",
+						"          DT_INICIO as date,",
+						"          DT_FIM as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT \\n    [SK_PRODUTO]\\n    ,[SKU]\\n    ,[DT_INICIO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_produto]',",
+						"     format: 'query') ~> DBdimProduto",
+						"CSVfatoFaturamento, DBdimCliente join(CSVfatoFaturamento@COD_CLIENTE == DBdimCliente@COD_CLIENTE",
+						"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+						"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'both')~> JoinClienteSCD",
+						"JoinClienteSCD select(mapColumn(",
+						"          NOTA_FISCAL,",
+						"          DATA_EMISSAO,",
+						"          COD_EVENTO,",
+						"          PEDIDO_VENDA,",
+						"          SK_CLIENTE,",
+						"          SKU_PRODUTO,",
+						"          UNID,",
+						"          QUANTIDADE,",
+						"          PRECO_UNITARIO,",
+						"          COND_FRETE,",
+						"          CUSTO_FRETE_UNIT,",
+						"          NF_ORIGEM_DEV",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas1",
+						"SelecionaColunas1, DBdimProduto join(SKU_PRODUTO == SKU",
+						"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+						"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
+						"     joinType:'left',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'both')~> JoinProdutoSCD",
+						"JoinProdutoSCD select(mapColumn(",
+						"          NOTA_FISCAL,",
+						"          DATA_EMISSAO,",
+						"          COD_EVENTO,",
+						"          PEDIDO_VENDA,",
+						"          SK_CLIENTE,",
+						"          SK_PRODUTO,",
+						"          UNID,",
+						"          QUANTIDADE,",
+						"          PRECO_UNITARIO,",
+						"          COND_FRETE,",
+						"          CUSTO_FRETE_UNIT,",
+						"          NF_ORIGEM_DEV",
+						"     ),",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> SelecionaColunas2",
+						"SelecionaColunas2 sort(asc(DATA_EMISSAO, true)) ~> ClassificaDatas",
+						"ClassificaDatas sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     input(",
+						"          NOTA_FISCAL as string,",
+						"          DATA_EMISSAO as date,",
+						"          COD_EVENTO as string,",
+						"          PEDIDO_VENDA as string,",
+						"          SK_CLIENTE as integer,",
+						"          SK_PRODUTO as integer,",
+						"          UNID as string,",
+						"          QUANTIDADE as decimal(16,8),",
+						"          PRECO_UNITARIO as decimal(16,4),",
+						"          COND_FRETE as string,",
+						"          CUSTO_FRETE_UNIT as decimal(16,4),",
+						"          NF_ORIGEM_DEV as string",
+						"     ),",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     format: 'table',",
+						"     preSQLs:['DELETE FROM [faturamento].[fato_faturamento]\\nWHERE [DATA_EMISSAO] >= dbo.f_dt_carga_incremental(-60);'],",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     errorHandlingOption: 'stopOnFirstError',",
+						"     mapColumn(",
+						"          NOTA_FISCAL,",
+						"          DATA_EMISSAO,",
+						"          COD_EVENTO,",
+						"          PEDIDO_VENDA,",
+						"          SK_CLIENTE,",
+						"          SK_PRODUTO,",
+						"          UNID,",
+						"          QUANTIDADE,",
+						"          PRECO_UNITARIO,",
+						"          COND_FRETE,",
+						"          CUSTO_FRETE_UNIT,",
+						"          NF_ORIGEM_DEV",
+						"     )) ~> InsereBD"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/ds_data_lake_bd_fato_faturamento')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_cliente')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_dim_produto')]",
+				"[concat(variables('factoryId'), '/datasets/ds_azure_sql_db_fato_faturamento')]"
+			]
 		}
 	]
 }
