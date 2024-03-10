@@ -39,7 +39,7 @@
 						"referenceName": "ds_azure_sql_db_fato_pv_vendedor",
 						"type": "DatasetReference"
 					},
-					"name": "DeletaDB"
+					"name": "DeletaBD"
 				}
 			],
 			"transformations": [
@@ -119,6 +119,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          PEDIDO_VENDA = PEDIDO,",
@@ -138,11 +139,12 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          PEDIDO_VENDA,",
 				"          SK_VENDEDOR",
-				"     )) ~> DeletaDB"
+				"     )) ~> DeletaBD"
 			]
 		}
 	}
