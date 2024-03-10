@@ -276,7 +276,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "pl_fato_faturamento",
+						"activity": "pl_fato_pv_vendedor",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -312,6 +312,29 @@
 				"typeProperties": {
 					"pipeline": {
 						"referenceName": "pl_exclui_arquivos-csv_dl",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_fato_pv_vendedor",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_fato_faturamento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_v_fato_pv_vendedor_dl",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
