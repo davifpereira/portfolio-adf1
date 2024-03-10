@@ -87,6 +87,9 @@
 				"type": "Array"
 			}
 		},
+		"folder": {
+			"name": "Tarefas/Data Lake/Banco de dados/Primeira Carga"
+		},
 		"annotations": []
 	}
 }
