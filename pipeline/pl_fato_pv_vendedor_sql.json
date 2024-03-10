@@ -36,6 +36,9 @@
 				"type": "Array"
 			}
 		},
+		"folder": {
+			"name": "Tarefas/Azure SQL Server"
+		},
 		"annotations": []
 	}
 }

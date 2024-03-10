@@ -265,7 +265,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"pipeline": {
-						"referenceName": "pl_fato_faturamento",
+						"referenceName": "pl_fato_faturamento_sql",
 						"type": "PipelineReference"
 					},
 					"waitOnCompletion": true
