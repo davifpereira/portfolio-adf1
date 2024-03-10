@@ -18,7 +18,7 @@
 					"source": {
 						"type": "OracleSource",
 						"oracleReaderQuery": {
-							"value": "SELECT\n    pedido,\n    dt_amissao_nf,\n    nota_fiscal\nFROM\n    v_fato_pedido_venda_vendedor\nWHERE\n    dt_amissao_nf >= f_dt_inicio_carga(5)",
+							"value": "SELECT\n    pedido,\n    dt_emissao,\n    vendedor\nFROM\n    v_fato_pedido_venda_vendedor\nWHERE\n    dt_emissao >= f_dt_inicio_carga(5)",
 							"type": "Expression"
 						},
 						"partitionOption": "None",
