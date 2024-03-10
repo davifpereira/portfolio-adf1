@@ -6,24 +6,17 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "ds_data_lake_bd_fato_faturamento",
+						"referenceName": "ds_data_lake_bd_fato_pv_vendedor",
 						"type": "DatasetReference"
 					},
-					"name": "CSVfatoFaturamento"
+					"name": "CSVfatoPVvendedor"
 				},
 				{
 					"dataset": {
-						"referenceName": "ds_azure_sql_db_dim_cliente",
+						"referenceName": "ds_azure_sql_db_dim_vendedor",
 						"type": "DatasetReference"
 					},
-					"name": "DBdimCliente"
-				},
-				{
-					"dataset": {
-						"referenceName": "ds_azure_sql_db_dim_produto",
-						"type": "DatasetReference"
-					},
-					"name": "DBdimProduto"
+					"name": "DBdimVendedor"
 				}
 			],
 			"sinks": [
@@ -37,16 +30,10 @@
 			],
 			"transformations": [
 				{
-					"name": "JoinClienteSCD"
+					"name": "JoinVendedorSCD"
 				},
 				{
 					"name": "SelecionaColunas1"
-				},
-				{
-					"name": "JoinProdutoSCD"
-				},
-				{
-					"name": "SelecionaColunas2"
 				},
 				{
 					"name": "ClassificaDatas"
@@ -58,53 +45,33 @@
 				"     data_fim_se_null as date (currentDate('GMT-3'))",
 				"}",
 				"source(output(",
-				"          NOTA_FISCAL as string,",
-				"          DATA_EMISSAO as date,",
-				"          COD_EVENTO as string,",
-				"          PEDIDO_VENDA as string,",
-				"          COD_CLIENTE as integer,",
-				"          SKU_PRODUTO as string,",
-				"          UNID as string,",
-				"          QUANTIDADE as float,",
-				"          PRECO_UNITARIO as float,",
-				"          COND_FRETE as string,",
-				"          CUSTO_FRETE_UNIT as float,",
-				"          NF_ORIGEM_DEV as string",
+				"          PEDIDO as string,",
+				"          DT_EMISSAO as date,",
+				"          VENDEDOR as integer",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     inferDriftedColumnTypes: true,",
-				"     ignoreNoFilesFound: false) ~> CSVfatoFaturamento",
+				"     ignoreNoFilesFound: false) ~> CSVfatoPVvendedor",
 				"source(output(",
-				"          SK_CLIENTE as integer,",
-				"          COD_CLIENTE as integer,",
+				"          SK_VENDEDOR as integer,",
+				"          COD_VENDEDOR as integer,",
 				"          DT_INICIO as date,",
 				"          DT_FIM as date",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT \\n    [SK_CLIENTE]\\n    ,[COD_CLIENTE]\\n    ,[DT_INICIO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_cliente]',",
-				"     format: 'query') ~> DBdimCliente",
-				"source(output(",
-				"          SK_PRODUTO as integer,",
-				"          SKU as string,",
-				"          DT_INICIO as date,",
-				"          DT_FIM as date",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     query: 'SELECT \\n    [SK_PRODUTO]\\n    ,[SKU]\\n    ,[DT_INICIO]\\n    ,[DT_FIM]\\nFROM [comercial].[dimensao_produto]',",
-				"     format: 'query') ~> DBdimProduto",
-				"CSVfatoFaturamento, DBdimCliente join(CSVfatoFaturamento@COD_CLIENTE == DBdimCliente@COD_CLIENTE",
-				"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
-				"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
+				"     query: 'SELECT [SK_VENDEDOR]\\n      ,[COD_VENDEDOR]\\n      ,[DT_INICIO]\\n      ,[DT_FIM]\\nFROM [comercial].[dimensao_vendedor]',",
+				"     format: 'query') ~> DBdimVendedor",
+				"CSVfatoPVvendedor, DBdimVendedor join(VENDEDOR == COD_VENDEDOR",
+				"     && DT_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+				"     && DT_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
 				"     joinType:'left',",
 				"     matchType:'exact',",
 				"     ignoreSpaces: false,",
-				"     broadcast: 'both')~> JoinClienteSCD",
-				"JoinClienteSCD select(mapColumn(",
+				"     broadcast: 'both')~> JoinVendedorSCD",
+				"JoinVendedorSCD select(mapColumn(",
 				"          NOTA_FISCAL,",
 				"          DATA_EMISSAO,",
 				"          COD_EVENTO,",
@@ -120,30 +87,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas1",
-				"SelecionaColunas1, DBdimProduto join(SKU_PRODUTO == SKU",
-				"     && DATA_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
-				"     && DATA_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
-				"     joinType:'left',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'both')~> JoinProdutoSCD",
-				"JoinProdutoSCD select(mapColumn(",
-				"          NOTA_FISCAL,",
-				"          DATA_EMISSAO,",
-				"          COD_EVENTO,",
-				"          PEDIDO_VENDA,",
-				"          SK_CLIENTE,",
-				"          SK_PRODUTO,",
-				"          UNID,",
-				"          QUANTIDADE,",
-				"          PRECO_UNITARIO,",
-				"          COND_FRETE,",
-				"          CUSTO_FRETE_UNIT,",
-				"          NF_ORIGEM_DEV",
-				"     ),",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas2",
-				"SelecionaColunas2 sort(asc(DATA_EMISSAO, true)) ~> ClassificaDatas",
+				"SelecionaColunas1 sort(asc(DATA_EMISSAO, true)) ~> ClassificaDatas",
 				"ClassificaDatas sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
