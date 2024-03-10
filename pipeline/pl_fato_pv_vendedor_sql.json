@@ -1,12 +1,10 @@
 {
-	"name": "pl_fato_pedido_venda_vendedor",
+	"name": "pl_fato_pv_vendedor_sql",
 	"properties": {
 		"activities": [
 			{
-				"name": "Copy data1",
-				"type": "Copy",
-				"state": "Inactive",
-				"onInactiveMarkAs": "Succeeded",
+				"name": "delete_insert_dw",
+				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.00:10:00",
@@ -17,77 +15,19 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"source": {
-						"type": "OracleSource",
-						"oracleReaderQuery": {
-							"value": "@activity('pedidos_existentes').output.value",
-							"type": "Expression"
-						},
-						"partitionOption": "None",
-						"convertDecimalToInteger": false,
-						"queryTimeout": "02:00:00"
-					},
-					"sink": {
-						"type": "AzureSqlSink",
-						"writeBehavior": "insert",
-						"sqlWriterUseTableLock": false
-					},
-					"enableStaging": false,
-					"translator": {
-						"type": "TabularTranslator",
-						"typeConversion": true,
-						"typeConversionSettings": {
-							"allowDataTruncation": true,
-							"treatBooleanAsNumber": false
-						}
-					}
-				},
-				"inputs": [
-					{
-						"referenceName": "ds_oracle_generico",
-						"type": "DatasetReference",
+					"dataflow": {
+						"referenceName": "df_fato_pv_vendedor",
+						"type": "DataFlowReference",
 						"parameters": {
-							"owner": "CONSULTORIA_BI"
-						}
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "ds_azure_sql_db_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"schema": "comercial",
-							"tabela": "fato_pedido_venda_vendedor"
-						}
-					}
-				]
-			},
-			{
-				"name": "query_pedidos",
-				"type": "Lookup",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.00:10:00",
-					"retry": 3,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "OracleSource",
-						"partitionOption": "None",
-						"queryTimeout": "02:00:00"
-					},
-					"dataset": {
-						"referenceName": "ds_oracle_generico",
-						"type": "DatasetReference",
-						"parameters": {
-							"owner": "CONSULTORIA_BI"
+							"data_inicio_se_null": "toDate('1900-1-1','yyyy-MM-dd')",
+							"data_fim_se_null": "currentDate('GMT-3')"
 						}
 					},
-					"firstRowOnly": false
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
 				}
 			}
 		],
