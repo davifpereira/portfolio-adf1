@@ -1,0 +1,95 @@
+{
+	"name": "pl_v_fato_pv_vendedor_dl",
+	"properties": {
+		"activities": [
+			{
+				"name": "copia_salva",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "OracleSource",
+						"oracleReaderQuery": {
+							"value": "SELECT\n    pedido,\n    dt_emissao,\n    vendedor\nFROM\n    v_fato_pedido_venda_vendedor\nWHERE\n    dt_emissao >= f_dt_carga_incremental(10)",
+							"type": "Expression"
+						},
+						"partitionOption": "None",
+						"convertDecimalToInteger": false,
+						"queryTimeout": "02:00:00"
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobFSWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "ds_oracle_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"owner": "CONSULTORIA_BI",
+							"view": "*"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_data_lake_csv_generico",
+						"type": "DatasetReference",
+						"parameters": {
+							"container": {
+								"value": "@pipeline().globalParameters.dl_container_tabelas_bd",
+								"type": "Expression"
+							},
+							"nome_arquivo": {
+								"value": "@concat(replace(replace(pipeline().Pipeline, 'pl_v_', ''), '_dl_primeira', ''), '.csv')",
+								"type": "Expression"
+							},
+							"separador": {
+								"value": "@pipeline().globalParameters.separador_padrao",
+								"type": "Expression"
+							},
+							"encoding": {
+								"value": "@pipeline().globalParameters.encoding_padrao",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"pedidos": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Tarefas/Data Lake/Banco de dados"
+		},
+		"annotations": []
+	}
+}

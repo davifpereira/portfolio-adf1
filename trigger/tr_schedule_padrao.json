@@ -2,21 +2,14 @@
 	"name": "tr_schedule_padrao",
 	"properties": {
 		"annotations": [],
-		"runtimeState": "Started",
-		"pipelines": [
-			{
-				"pipelineReference": {
-					"referenceName": "execucao_diaria",
-					"type": "PipelineReference"
-				}
-			}
-		],
+		"runtimeState": "Stopped",
+		"pipelines": [],
 		"type": "ScheduleTrigger",
 		"typeProperties": {
 			"recurrence": {
 				"frequency": "Day",
 				"interval": 1,
-				"startTime": "2024-03-11T05:00:00",
+				"startTime": "2024-03-10T00:00:00",
 				"timeZone": "E. South America Standard Time",
 				"schedule": {
 					"minutes": [

@@ -7,9 +7,26 @@
 			"metadata": "Data Factory name",
 			"defaultValue": "adf-consultoria-bi"
 		},
-		"AzureKeyVault_properties_typeProperties_baseUrl": {
+		"ls_oracle_servidor_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'ls_oracle_servidor'",
+			"defaultValue": "host=localhost;port=1521;serviceName=XEPDB1;user id=CONSULTORIA_BI"
+		},
+		"ls_azure_sql_database_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "azure-sqldb-string-adonet-consultoria-bi"
+		},
+		"ls_datalake_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://dlsconsultoriabi.dfs.core.windows.net/"
+		},
+		"ls_key_vault_properties_typeProperties_baseUrl": {
 			"type": "string",
 			"defaultValue": "https://kv-consultoria-bi-adf-dl.vault.azure.net/"
+		},
+		"ls_rest_api_aberta_generico_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "@{linkedService().url}"
 		},
 		"containerUri": {
 			"type": "string",
@@ -38,12 +55,64 @@
 					"factoryName": {
 						"value": "[parameters('factoryName')]"
 					},
-					"AzureKeyVault_properties_typeProperties_baseUrl": {
-						"value": "[parameters('AzureKeyVault_properties_typeProperties_baseUrl')]"
+					"ls_oracle_servidor_connectionString": {
+						"value": "[parameters('ls_oracle_servidor_connectionString')]"
+					},
+					"ls_key_vault_properties_typeProperties_baseUrl": {
+						"value": "[parameters('ls_key_vault_properties_typeProperties_baseUrl')]"
+					},
+					"ls_rest_api_aberta_generico_properties_typeProperties_url": {
+						"value": "[parameters('ls_rest_api_aberta_generico_properties_typeProperties_url')]"
+					},
+					"ls_azure_sql_database_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('ls_azure_sql_database_properties_typeProperties_connectionString_secretName')]"
+					},
+					"ls_datalake_properties_typeProperties_url": {
+						"value": "[parameters('ls_datalake_properties_typeProperties_url')]"
 					}
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "adf-consultoria-bi_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-consultoria-bi_ArmTemplate_0')]"
+			]
+		},
+		{
+			"name": "adf-consultoria-bi_ArmTemplate_2",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_2.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'adf-consultoria-bi_ArmTemplate_1')]"
+			]
 		}
 	]
 }

@@ -1,0 +1,151 @@
+{
+	"name": "df_fato_pv_vendedor",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_data_lake_bd_fato_pv_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "CSVfatoPVvendedor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_dim_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "DBdimVendedor"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_fato_pv_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "DBfatoPVvendedor"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_fato_pv_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "InsereBD"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_fato_pv_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "DeletaBD"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinVendedorSCD"
+				},
+				{
+					"name": "SelecionaColunas"
+				},
+				{
+					"name": "PedidosDelete"
+				},
+				{
+					"name": "Delete"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     data_inicio_se_null as date (toDate('1900-1-1','yyyy-MM-dd')),",
+				"     data_fim_se_null as date (currentDate('GMT-3'))",
+				"}",
+				"source(output(",
+				"          PEDIDO as string,",
+				"          DT_EMISSAO as date,",
+				"          VENDEDOR as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     inferDriftedColumnTypes: true,",
+				"     ignoreNoFilesFound: false) ~> CSVfatoPVvendedor",
+				"source(output(",
+				"          SK_VENDEDOR as integer,",
+				"          COD_VENDEDOR as integer,",
+				"          DT_INICIO as date,",
+				"          DT_FIM as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT [SK_VENDEDOR]\\n      ,[COD_VENDEDOR]\\n      ,[DT_INICIO]\\n      ,[DT_FIM]\\nFROM [comercial].[dimensao_vendedor]',",
+				"     format: 'query') ~> DBdimVendedor",
+				"source(output(",
+				"          PEDIDO_VENDA as string,",
+				"          SK_VENDEDOR as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> DBfatoPVvendedor",
+				"CSVfatoPVvendedor, DBdimVendedor join(VENDEDOR == COD_VENDEDOR",
+				"     && DT_EMISSAO >= iifNull(DT_INICIO, $data_inicio_se_null)",
+				"     && DT_EMISSAO <= iifNull(DT_FIM, $data_fim_se_null),",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'both')~> JoinVendedorSCD",
+				"JoinVendedorSCD select(mapColumn(",
+				"          PEDIDO,",
+				"          SK_VENDEDOR",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
+				"DBfatoPVvendedor, CSVfatoPVvendedor exists(PEDIDO_VENDA == PEDIDO,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> PedidosDelete",
+				"PedidosDelete alterRow(deleteIf(1==1)) ~> Delete",
+				"SelecionaColunas sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PEDIDO_VENDA as string,",
+				"          SK_VENDEDOR as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          PEDIDO_VENDA = PEDIDO,",
+				"          SK_VENDEDOR",
+				"     )) ~> InsereBD",
+				"Delete sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PEDIDO_VENDA as string,",
+				"          SK_VENDEDOR as integer",
+				"     ),",
+				"     deletable:true,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     keys:['PEDIDO_VENDA'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          PEDIDO_VENDA,",
+				"          SK_VENDEDOR",
+				"     )) ~> DeletaBD"
+			]
+		}
+	}
+}

@@ -1,0 +1,44 @@
+{
+	"name": "pl_fato_pv_vendedor_sql",
+	"properties": {
+		"activities": [
+			{
+				"name": "delete_insert_dw",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.00:10:00",
+					"retry": 3,
+					"retryIntervalInSeconds": 60,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "df_fato_pv_vendedor",
+						"type": "DataFlowReference",
+						"parameters": {
+							"data_inicio_se_null": "toDate('1900-1-1','yyyy-MM-dd')",
+							"data_fim_se_null": "currentDate('GMT-3')"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"variables": {
+			"pedidos": {
+				"type": "Array"
+			}
+		},
+		"folder": {
+			"name": "Tarefas/Azure SQL Server"
+		},
+		"annotations": []
+	}
+}

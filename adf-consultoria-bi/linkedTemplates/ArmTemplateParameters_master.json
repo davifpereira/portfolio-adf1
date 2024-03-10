@@ -5,8 +5,20 @@
 		"factoryName": {
 			"value": "adf-consultoria-bi"
 		},
-		"AzureKeyVault_properties_typeProperties_baseUrl": {
+		"ls_oracle_servidor_connectionString": {
+			"value": "host=localhost;port=1521;serviceName=XEPDB1;user id=CONSULTORIA_BI"
+		},
+		"ls_azure_sql_database_properties_typeProperties_connectionString_secretName": {
+			"value": "azure-sqldb-string-adonet-consultoria-bi"
+		},
+		"ls_datalake_properties_typeProperties_url": {
+			"value": "https://dlsconsultoriabi.dfs.core.windows.net/"
+		},
+		"ls_key_vault_properties_typeProperties_baseUrl": {
 			"value": "https://kv-consultoria-bi-adf-dl.vault.azure.net/"
+		},
+		"ls_rest_api_aberta_generico_properties_typeProperties_url": {
+			"value": "@{linkedService().url}"
 		},
 		"containerUri": {
 			"value": ""

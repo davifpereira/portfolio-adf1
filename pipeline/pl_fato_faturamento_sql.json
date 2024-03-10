@@ -1,5 +1,5 @@
 {
-	"name": "pl_fato_faturamento",
+	"name": "pl_fato_faturamento_sql",
 	"properties": {
 		"activities": [
 			{

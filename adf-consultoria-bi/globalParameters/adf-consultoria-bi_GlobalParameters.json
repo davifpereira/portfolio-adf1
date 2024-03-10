@@ -1,1 +1,26 @@
-{}
+{
+	"dl_container_tabelas_bd": {
+		"type": "string",
+		"value": "tabelas-bd"
+	},
+	"dl_arquivos_csv": {
+		"type": "string",
+		"value": "arquivos-csv"
+	},
+	"dl_arquivos_excel": {
+		"type": "string",
+		"value": "arquivos-excel"
+	},
+	"dl_dados_api": {
+		"type": "string",
+		"value": "dados-api"
+	},
+	"separador_padrao": {
+		"type": "string",
+		"value": "|"
+	},
+	"encoding_padrao": {
+		"type": "string",
+		"value": "UTF-8"
+	}
+}
