@@ -33,6 +33,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "InsereBD"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_azure_sql_db_fato_pv_vendedor",
+						"type": "DatasetReference"
+					},
+					"name": "DeletaDB"
 				}
 			],
 			"transformations": [
@@ -43,16 +50,10 @@
 					"name": "SelecionaColunas"
 				},
 				{
-					"name": "exists1"
+					"name": "PedidosDelete"
 				},
 				{
-					"name": "exists2"
-				},
-				{
-					"name": "exists3"
-				},
-				{
-					"name": "join1"
+					"name": "Delete"
 				}
 			],
 			"scriptLines": [
@@ -101,16 +102,10 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> SelecionaColunas",
-				"exists2 exists(negate:false,",
-				"     broadcast: 'auto')~> exists1",
-				"exists3 exists(negate:false,",
-				"     broadcast: 'auto')~> exists2",
-				"join1 exists(negate:false,",
-				"     broadcast: 'auto')~> exists3",
-				"DBfatoPVvendedor join(joinType:'inner',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1",
+				"DBfatoPVvendedor, CSVfatoPVvendedor exists(PEDIDO_VENDA == PEDIDO,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> PedidosDelete",
+				"PedidosDelete alterRow(deleteIf(1==1)) ~> Delete",
 				"SelecionaColunas sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -128,7 +123,26 @@
 				"     mapColumn(",
 				"          PEDIDO_VENDA = PEDIDO,",
 				"          SK_VENDEDOR",
-				"     )) ~> InsereBD"
+				"     )) ~> InsereBD",
+				"Delete sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          PEDIDO_VENDA as string,",
+				"          SK_VENDEDOR as integer",
+				"     ),",
+				"     deletable:true,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     keys:['PEDIDO_VENDA'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          PEDIDO_VENDA,",
+				"          SK_VENDEDOR",
+				"     )) ~> DeletaDB"
 			]
 		}
 	}
