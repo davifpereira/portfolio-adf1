@@ -115,7 +115,7 @@
 				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "pl_v_fato_faturamento_dl",
+						"activity": "pl_v_fato_pv_vendedor_dl",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -323,6 +323,29 @@
 				"dependsOn": [
 					{
 						"activity": "pl_fato_faturamento",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "pl_fato_pv_vendedor_sql",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			},
+			{
+				"name": "pl_v_fato_pv_vendedor_dl",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "pl_v_fato_faturamento_dl",
 						"dependencyConditions": [
 							"Succeeded"
 						]
