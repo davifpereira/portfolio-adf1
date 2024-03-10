@@ -1,0 +1,29 @@
+{
+	"name": "ds_azure_sql_db_fato_pv_vendedor",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_azure_sql_database",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Azure SQL Server/Específicos"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "PEDIDO_VENDA",
+				"type": "varchar"
+			},
+			{
+				"name": "SK_VENDEDOR",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "comercial",
+			"table": "fato_pedido_venda_vendedor"
+		}
+	}
+}
